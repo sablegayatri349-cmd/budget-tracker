@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="theme.js"></script>
+<script src="translations.js"></script>
+<script src="language.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bill Reminders – BudgetTracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#080f08; --bg2:#0c140c; --bg3:#111a11; --card:#141f14; --card2:#1a2a1a;
+  --border:#1f2f1f; --border2:#2a402a; --green-dark:#1a3d1a; --green:#2d6a2d;
+  --green-mid:#3a8c3a; --green-bright:#52b052; --gold:#c9a84c; --gold-light:#e8c86a;
+  --gold-bright:#f5d87a; --gold-dim:rgba(201,168,76,0.12); --gold-border:rgba(201,168,76,0.25);
+  --red:#e05555; --red-dim:rgba(224,85,85,0.12); --text:#e8f0e0; --tmid:#7a9870; --tdim:#3a5030;
+  --sidebar-w:235px; --font-d:'DM Serif Display',serif; --font-b:'DM Sans',sans-serif;
+}
+body { font-family:var(--font-b); background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* SIDEBAR */
+.sidebar { position:fixed; top:0; left:0; bottom:0; width:var(--sidebar-w); background:var(--bg2); border-right:1px solid var(--border); display:flex; flex-direction:column; z-index:100; transition:transform .3s; }
+.sidebar-logo { padding:24px 20px 20px; border-bottom:1px solid var(--border); font-family:var(--font-d); font-size:20px; color:var(--text); display:flex; align-items:center; gap:9px; text-decoration:none; }
+.logo-dot { width:9px; height:9px; background:var(--gold); border-radius:50%; flex-shrink:0; box-shadow:0 0 10px rgba(201,168,76,0.6); }
+.nav-section { flex:1; padding:16px 10px; overflow-y:auto; }
+.nav-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.12em; color:var(--tdim); padding:0 10px; margin:16px 0 6px; }
+.nav-link { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:9px; text-decoration:none; font-size:13.5px; font-weight:500; color:var(--tmid); transition:background .15s,color .15s; margin-bottom:2px; }
+.nav-link:hover { background:var(--bg3); color:var(--text); }
+.nav-link.active { background:var(--gold-dim); color:var(--gold-light); border:1px solid var(--gold-border); }
+.nav-link .icon { font-size:15px; width:20px; text-align:center; flex-shrink:0; }
+.sidebar-bottom { padding:14px 10px; border-top:1px solid var(--border); }
+.profile-row { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:9px; cursor:pointer; transition:background .15s; }
+.profile-row:hover { background:var(--bg3); }
+.avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--gold),var(--gold-bright)); color:#0c0c00; font-family:var(--font-d); font-size:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.profile-name  { font-size:13px; font-weight:500; color:var(--text); }
+.profile-email { font-size:11px; color:#7a9870; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:135px; }
+.logout-btn { width:100%; margin-top:10px; padding:9px; background:var(--red-dim); color:#f09090; border:1px solid rgba(224,85,85,0.2); border-radius:8px; font-family:var(--font-b); font-size:13px; font-weight:500; cursor:pointer; }
+.logout-btn:hover { background:rgba(224,85,85,0.22); }
+
+/* MAIN */
+.main { margin-left:var(--sidebar-w); padding:32px 32px 60px; min-height:100vh; }
+
+/* OVERDUE ALERT BANNER */
+.overdue-banner {
+  display:none; margin-bottom:20px; padding:14px 20px;
+  background:linear-gradient(90deg,rgba(224,85,85,0.15),rgba(224,85,85,0.05));
+  border:1px solid rgba(224,85,85,0.4); border-radius:12px;
+  align-items:center; gap:14px;
+  animation:bannerPulse 2s ease-in-out infinite;
+}
+@keyframes bannerPulse { 0%,100%{border-color:rgba(224,85,85,0.4);} 50%{border-color:rgba(224,85,85,0.85);box-shadow:0 0 18px rgba(224,85,85,0.15);} }
+.overdue-banner.show { display:flex; }
+.banner-icon  { font-size:24px; flex-shrink:0; }
+.banner-text  { flex:1; }
+.banner-title { font-size:14px; font-weight:600; color:var(--red); margin-bottom:3px; }
+.banner-sub   { font-size:12px; color:#f09090; }
+.banner-tags  { display:flex; gap:7px; flex-wrap:wrap; }
+.banner-tag   { padding:4px 10px; background:rgba(224,85,85,0.15); border:1px solid rgba(224,85,85,0.3); border-radius:20px; font-size:11px; font-weight:600; color:#f09090; white-space:nowrap; }
+
+/* TOPBAR */
+.topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
+.topbar-left h1 { font-family:var(--font-d); font-size:26px; color:var(--text); }
+.topbar-left p  { font-size:13px; color: #7a9870;; margin-top:3px; }
+.back-btn { display:flex; align-items:center; gap:6px; padding:9px 18px; background:var(--gold-dim); border:1px solid var(--gold-border); border-radius:50px; color:var(--gold-light); font-size:13px; font-weight:500; text-decoration:none; transition:background .2s; }
+.back-btn:hover { background:rgba(201,168,76,0.22); }
+
+/* STATS */
+.stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px; }
+.stat { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px 20px; position:relative; overflow:hidden; transition:border-color .2s; }
+.stat:hover { border-color:var(--gold-border); }
+.stat-stripe { position:absolute; top:0; left:0; right:0; height:2px; }
+.stat-label { font-size:11px; color:var(--gold); text-transform:uppercase; letter-spacing:.07em; margin-bottom:8px; margin-top:6px; }
+.stat-val { font-family:var(--font-d); font-size:24px; color:#ffffff; }
+.stat-sub { font-size:11px; color: #7a9870; margin-top:4px; }
+
+/* VIEW TOGGLE */
+.view-toggle { display:flex; gap:8px; margin-bottom:18px; }
+.vtab { padding:7px 18px; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; border:1px solid var(--border2); background:var(--card); color:var(--tmid); transition:all .15s; }
+.vtab.on { background:var(--gold-dim); border-color:var(--gold-border); color:var(--gold-light); }
+.vtab:hover:not(.on) { background:var(--bg3); color:var(--text); }
+
+/* BODY GRID */
+.body-grid { display:grid; grid-template-columns:1fr 320px; gap:20px; }
+.bills-section { display:flex; flex-direction:column; gap:16px; }
+
+/* FILTER TABS */
+.filter-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.filter-tabs { display:flex; gap:7px; }
+.ftab { padding:6px 14px; border-radius:8px; font-size:12px; font-weight:500; cursor:pointer; border:1px solid var(--border2); background:var(--card); color:var(--tmid); transition:all .15s; }
+.ftab.on { background:var(--gold-dim); border-color:var(--gold-border); color:var(--gold-light); }
+.ftab:hover:not(.on) { background:var(--bg3); color:var(--text); }
+
+/* BILL CARD */
+.bill-card { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:12px; transition:border-color .2s,transform .15s; animation:cardIn .3s ease; }
+@keyframes cardIn { from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;} }
+.bill-card:hover { transform:translateY(-1px); }
+.bill-card.overdue  { border-color:rgba(224,85,85,0.4); }
+.bill-card.due-soon { border-color:rgba(201,168,76,0.4); }
+.bill-card.paid     { opacity:.6; }
+
+.bill-top { padding:16px 20px 10px; display:flex; align-items:flex-start; gap:14px; }
+.bill-ico  { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.bill-info { flex:1; }
+.bill-name-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.bill-name { font-family:var(--font-d); font-size:16px; color:var(--text); }
+.cat-color-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+
+/* COUNTDOWN PILL */
+.countdown-pill { display:inline-flex; align-items:center; gap:5px; padding:5px 13px; border-radius:20px; font-size:12px; font-weight:700; }
+.countdown-pill .pill-num { font-family:var(--font-d); font-size:16px; line-height:1; }
+.pill-overdue  { background:rgba(224,85,85,0.2); color:var(--red); border:1px solid rgba(224,85,85,0.35); }
+.pill-due-soon { background:rgba(201,168,76,0.2); color:var(--gold-light); border:1px solid rgba(201,168,76,0.35); }
+.pill-upcoming { background:rgba(82,176,82,0.12); color:var(--green-bright); border:1px solid rgba(82,176,82,0.25); }
+.pill-paid     { background:rgba(82,176,82,0.12); color:var(--green-bright); border:1px solid rgba(82,176,82,0.25); }
+
+.bill-actions { display:flex; gap:6px; flex-shrink:0; align-items:center; }
+.btn-pay       { padding:7px 14px; background:var(--green-dark); border:1px solid rgba(82,176,82,0.3); color:var(--green-bright); border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; transition:background .15s; }
+.btn-pay:hover { background:rgba(82,176,82,0.2); }
+.btn-paid-badge { padding:7px 12px; background:rgba(82,176,82,0.1); border:1px solid rgba(82,176,82,0.2); color:var(--green-bright); border-radius:8px; font-size:12px; font-weight:600; }
+.btn-edit-bill  { padding:7px 10px; background:var(--gold-dim); border:1px solid var(--gold-border); color:var(--gold-light); border-radius:8px; font-size:12px; cursor:pointer; }
+.btn-edit-bill:hover { background:rgba(201,168,76,0.25); }
+.btn-del-bill   { padding:7px 9px; background:none; border:1px solid var(--border2); color:var(--tdim); border-radius:8px; font-size:13px; cursor:pointer; }
+.btn-del-bill:hover { color:var(--red); background:var(--red-dim); border-color:rgba(224,85,85,0.2); }
+
+.bill-bottom { padding:4px 20px 16px; display:flex; align-items:center; justify-content:space-between; }
+.bill-amount { font-family:var(--font-d); font-size:22px; color:var(--gold-light); }
+.bill-amount.red { color:var(--red); }
+.bill-recur  { font-size:11px; color:var(--tdim); background:var(--bg3); border:1px solid var(--border); padding:3px 10px; border-radius:20px; }
+
+/* EMPTY */
+.empty-bills { text-align:center; padding:60px 20px; }
+.empty-ico   { font-size:48px; margin-bottom:14px; }
+.empty-bills h3 { font-family:var(--font-d); font-size:20px; color:var(--text); margin-bottom:8px; }
+.empty-bills p  { font-size:14px; color:var(--tdim); line-height:1.6; }
+
+/* CALENDAR */
+.calendar-card { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+.cal-header { padding:16px 20px; background:var(--green-dark); border-bottom:1px solid rgba(201,168,76,0.15); display:flex; align-items:center; justify-content:space-between; }
+.cal-title  { font-family:var(--font-d); font-size:17px; color:var(--gold-light); }
+.cal-nav    { display:flex; align-items:center; gap:10px; }
+.cal-nav-btn { width:28px; height:28px; border-radius:50%; border:1px solid var(--border2); background:var(--bg3); color:var(--tmid); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.cal-nav-btn:hover { background:var(--gold-dim); color:var(--gold-light); border-color:var(--gold-border); }
+.cal-month-label { font-size:14px; font-weight:500; color:var(--text); min-width:130px; text-align:center; }
+.cal-body { padding:16px 20px; }
+.cal-days-header { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px; }
+.cal-day-name { text-align:center; font-size:10px; font-weight:600; color:var(--tdim); text-transform:uppercase; padding:4px 0; }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.cal-cell { min-height:76px; border-radius:8px; padding:5px; background:var(--bg3); border:1px solid var(--border); transition:border-color .15s; }
+.cal-cell.today { border-color:var(--gold-border); background:var(--gold-dim); }
+.cal-cell.other-month { opacity:.3; }
+.cal-date { font-size:11px; font-weight:600; color:var(--tmid); margin-bottom:3px; }
+.cal-cell.today .cal-date { color:var(--gold-light); }
+.cal-bill-chip { display:flex; align-items:center; gap:3px; padding:2px 5px; border-radius:4px; font-size:10px; font-weight:600; margin-bottom:2px; overflow:hidden; cursor:pointer; transition:opacity .15s; white-space:nowrap; }
+.cal-bill-chip:hover { opacity:.75; }
+.chip-dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+.cal-more { font-size:10px; color:var(--tdim); padding:1px 4px; }
+
+/* RIGHT COL */
+.right-col { display:flex; flex-direction:column; gap:16px; }
+.add-card { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+.add-hdr  { padding:15px 20px; background:var(--green-dark); border-bottom:1px solid rgba(201,168,76,0.15); font-family:var(--font-d); font-size:16px; color:var(--gold-light); }
+.add-body { padding:18px 20px; display:flex; flex-direction:column; gap:12px; }
+.field label { font-size:11px; font-weight:600; color: #7a9870; text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:5px; }
+.field input,.field select { width:100%; padding:10px 12px; background:var(--bg3); border:1px solid var(--border2); border-radius:9px; font-family:var(--font-b); font-size:13px; color:var(--text); outline:none; transition:border-color .2s,box-shadow .2s; }
+.field input::placeholder { color:var(--tdim); }
+.field input:focus,.field select:focus { border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-dim); }
+.field select option { background:var(--bg3); }
+.field-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.btn-add-bill { width:100%; padding:12px; border:none; border-radius:10px; font-family:var(--font-b); font-size:14px; font-weight:600; cursor:pointer; background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:#0c0c00; transition:opacity .2s,transform .15s; display:flex; align-items:center; justify-content:center; gap:6px; }
+.btn-add-bill:hover { opacity:.88; transform:translateY(-1px); }
+
+.upcoming-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px; }
+.upcoming-title { font-family:var(--font-d); font-size:15px; color:var(--text); margin-bottom:14px; }
+.up-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-top:1px solid var(--border); }
+.up-row:first-of-type { border-top:none; padding-top:0; }
+.up-ico  { font-size:16px; width:28px; flex-shrink:0; }
+.up-info { flex:1; }
+.up-name { font-size:13px; font-weight:500; color:var(--text); }
+.up-date { font-size:11px; color:var(--tdim); margin-top:1px; }
+.up-amt  { font-size:13px; font-weight:600; color:var(--gold-light); flex-shrink:0; }
+
+.legend-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px; }
+.legend-title { font-family:var(--font-d); font-size:15px; color:var(--text); margin-bottom:12px; }
+.legend-grid  { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.legend-item  { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--tmid); }
+.legend-dot   { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+
+/* MODAL */
+.modal-bg { display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.65); align-items:center; justify-content:center; }
+.modal-bg.open { display:flex; }
+.modal { background:var(--card); border:1px solid var(--gold-border); border-radius:20px; width:100%; max-width:440px; overflow:hidden; animation:mIn .25s cubic-bezier(.175,.885,.32,1.275); }
+@keyframes mIn { from{opacity:0;transform:scale(.93);}to{opacity:1;transform:none;} }
+.modal-hdr { padding:18px 24px; background:var(--green-dark); border-bottom:1px solid rgba(201,168,76,0.2); display:flex; justify-content:space-between; align-items:center; }
+.modal-ttl { font-family:var(--font-d); font-size:18px; color:var(--gold-light); }
+.modal-x   { background:none; border:none; color:var(--tmid); font-size:20px; cursor:pointer; padding:2px 6px; border-radius:6px; }
+.modal-x:hover { color:var(--text); }
+.modal-bdy { padding:24px; display:flex; flex-direction:column; gap:14px; }
+.m-field label { font-size:11px; font-weight:600; color:var(--tdim); text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:6px; }
+.m-field input,.m-field select { width:100%; padding:11px 13px; background:var(--bg3); border:1px solid var(--border2); border-radius:10px; font-family:var(--font-b); font-size:14px; color:var(--text); outline:none; transition:border-color .2s,box-shadow .2s; }
+.m-field input:focus,.m-field select:focus { border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-dim); }
+.m-field select option { background:var(--bg3); }
+.m-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.modal-ftr { padding:0 24px 24px; display:flex; gap:10px; }
+.btn-save   { flex:1; padding:12px; border:none; border-radius:10px; font-family:var(--font-b); font-size:14px; font-weight:600; cursor:pointer; background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:#0c0c00; }
+.btn-cancel { padding:12px 20px; border:1px solid var(--border2); border-radius:10px; font-family:var(--font-b); font-size:14px; cursor:pointer; background:var(--bg3); color:var(--tmid); }
+
+/* CONFETTI */
+#confettiCanvas { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999; display:none; }
+
+/* PAID OVERLAY */
+.paid-overlay { display:none; position:fixed; inset:0; z-index:9998; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; }
+.paid-overlay.show { display:flex; }
+.paid-box { background:var(--card); border:2px solid rgba(82,176,82,0.4); border-radius:24px; padding:44px 56px; text-align:center; animation:paidPop .4s cubic-bezier(.175,.885,.32,1.275); }
+@keyframes paidPop { from{opacity:0;transform:scale(.65);}to{opacity:1;transform:none;} }
+.paid-check { font-size:60px; margin-bottom:16px; animation:checkBounce .5s .15s cubic-bezier(.175,.885,.32,1.275) both; }
+@keyframes checkBounce { from{transform:scale(0) rotate(-20deg);}to{transform:scale(1) rotate(0);} }
+.paid-title { font-family:var(--font-d); font-size:26px; color:var(--green-bright); margin-bottom:6px; }
+.paid-sub   { font-size:14px; color:var(--tmid); }
+
+/* TOAST */
+.toast { position:fixed; bottom:22px; right:24px; background:var(--gold); color:#0c0c00; padding:11px 20px; border-radius:12px; font-size:13px; font-weight:600; z-index:999; transform:translateY(50px); opacity:0; transition:transform .35s cubic-bezier(.175,.885,.32,1.275),opacity .35s; pointer-events:none; }
+.toast.show { transform:translateY(0); opacity:1; }
+.toast.err  { background:var(--red); color:#fff; }
+
+/* MOBILE */
+.menu-btn { display:none; position:fixed; top:14px; left:14px; z-index:200; width:38px; height:38px; background:var(--green-dark); border:1px solid var(--gold-border); border-radius:9px; align-items:center; justify-content:center; color:var(--gold-light); font-size:18px; cursor:pointer; }
+.sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:90; }
+::-webkit-scrollbar { width:5px; } ::-webkit-scrollbar-track { background:transparent; } ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
+@media (max-width:1024px) { .stats-row { grid-template-columns:repeat(2,1fr); } }
+@media (max-width:860px)  { .body-grid { grid-template-columns:1fr; } }
+@media (max-width:700px)  {
+  .sidebar { transform:translateX(-100%); } .sidebar.open { transform:translateX(0); }
+  .sidebar-overlay.open { display:block; } .main { margin-left:0; padding:72px 16px 40px; }
+  .menu-btn { display:flex; } .stats-row { grid-template-columns:1fr 1fr; }
+  .topbar { flex-direction:column; align-items:flex-start; gap:12px; }
+  .modal { max-width:95vw; } .cal-cell { min-height:55px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+
+<!-- PAID OVERLAY -->
+<div class="paid-overlay" id="paidOverlay">
+  <div class="paid-box">
+    <div class="paid-check">✅</div>
+    <div class="paid-title" id="paidTitle">Bill Paid!</div>
+    <div class="paid-sub"   id="paidSub">Great job staying on top of your bills!</div>
+  </div>
+</div>
+
+<button class="menu-btn" onclick="toggleMenu()">☰</button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleMenu()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="sidebar-logo" href="welcome.html"><span class="logo-dot"></span>BudgetTracker</a>
+  <nav class="nav-section">
+    <div class="nav-label">Main</div>
+    <a href="index.html"          class="nav-link"><span class="icon">🏠</span> <span data-i18n="dashboard">Dashboard</span></a>
+<a href="income-expense.html" class="nav-link"><span class="icon">📊</span> <span data-i18n="income_expense">Income vs Expense</span></a>
+<a href="monthly.html"        class="nav-link"><span class="icon">📅</span> <span data-i18n="monthly_summary">Monthly Report</span></a>
+<a href="barchart.html"       class="nav-link"><span class="icon">📈</span> <span data-i18n="bar_chart">Bar Chart</span></a>
+<a href="savings-goals.html"  class="nav-link"><span class="icon">🏆</span> <span data-i18n="savings_goals">Savings Goals</span></a>
+<a href="bill-reminders.html" class="nav-link active"><span class="icon">🔔</span> <span data-i18n="bill_reminders">Bill Reminders</span></a>
+<a href="pdf-report.html" class="nav-link"><span class="icon">📄</span> <span data-i18n="pdf_report">PDF Report</span></a>
+
+<a class="nav-link" onclick="HelpTour.start()" style="cursor:pointer;">
+  <span class="icon">🩵</span> Help Tour
+</a>    
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="profile-row" onclick="toggleProfile(event)" style="cursor:pointer;">
+      <div class="avatar" id="avatarLetter">U</div>
+      <div>
+        <div class="profile-name"  id="profileName">User</div>
+        <div class="profile-email" id="profileEmail">—</div>
+      </div>
+    </div>
+      <span style="margin-left:auto;font-size:11px;color:#7a9870;">▲</span>
+    </div>
+  </div>
+</aside>
+
+<!-- PROFILE POPUP -->
+<div id="profilePopup" style="display:none;position:fixed;bottom:75px;left:10px;width:220px;background:#1a2a1a;border:1px solid rgba(201,168,76,0.25);border-radius:14px;padding:16px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+  <div style="font-size:14px;font-weight:700;color:#e8f0e0;margin-bottom:3px;" id="popupName">User</div>
+  <div style="font-size:11px;color:#7a9870;margin-bottom:12px;" id="popupEmail">—</div>
+  <div style="height:1px;background:#1f2f1f;margin-bottom:12px;"></div>
+  <a href="profile.html" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);border-radius:9px;color:#e8c86a;font-size:12px;font-weight:600;text-decoration:none;margin-bottom:6px;">👤 View Profile</a>
+  <a href="settings.html" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);border-radius:9px;color:#e8c86a;font-size:12px;font-weight:600;text-decoration:none;margin-bottom:6px;">⚙️ Budget & Settings</a>
+  <button onclick="logout()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(224,85,85,0.1);border:1px solid rgba(224,85,85,0.2);border-radius:9px;color:#f09090;font-size:12px;font-weight:600;cursor:pointer;">🚪 Sign Out</button>
+</div>
+
+<main class="main">
+
+  <!-- OVERDUE ALERT BANNER -->
+  <div class="overdue-banner" id="overdueBanner">
+    <div class="banner-icon">🚨</div>
+    <div class="banner-text">
+      <div class="banner-title" id="bannerTitle">You have overdue bills!</div>
+      <div class="banner-sub">Pay them as soon as possible to avoid late fees.</div>
+    </div>
+    <div class="banner-tags" id="bannerTags"></div>
+  </div>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>🔔 Bill Reminders</h1>
+      <p>Track your upcoming bills and never miss a payment</p>
+    </div>
+    <a href="index.html" class="back-btn">← Dashboard</a>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-stripe" style="background:linear-gradient(90deg,var(--gold),var(--gold-light));"></div>
+      <div class="stat-label" data-i18n="bills_title">Total Bills</div>
+      <div class="stat-val" id="st-total">0</div>
+      <div class="stat-sub" id="st-active">0 active</div>
+    </div>
+    <div class="stat">
+      <div class="stat-stripe" style="background:linear-gradient(90deg,var(--red),#f08080);"></div>
+      <div class="stat-label" data-i18n="overdue">Overdue</div>
+      <div class="stat-val" id="st-overdue" >0</div>
+      <div class="stat-sub">needs attention!</div>
+    </div>
+    <div class="stat">
+      <div class="stat-stripe" style="background:linear-gradient(90deg,var(--gold),var(--gold-bright));"></div>
+      <div class="stat-label" data-i18n="upcoming">Due This Week</div>
+      <div class="stat-val" id="st-week" >0</div>
+      <div class="stat-sub">coming up soon</div>
+    </div>
+    <div class="stat">
+      <div class="stat-stripe" style="background:linear-gradient(90deg,var(--green),var(--green-bright));"></div>
+      <div class="stat-label" data-i18n="paid">Paid This Month</div>
+      <div class="stat-val" id="st-paid" >0</div>
+      <div class="stat-sub">bills cleared ✅</div>
+    </div>
+  </div>
+
+  <div class="view-toggle">
+    <div class="vtab on" id="vt-list" onclick="switchView('list')">📋 List View</div>
+    <div class="vtab"    id="vt-cal"  onclick="switchView('cal')">📅 Calendar View</div>
+  </div>
+
+  <div class="body-grid">
+    <div class="bills-section">
+
+      <!-- LIST VIEW -->
+      <div id="listView">
+        <div class="filter-row">
+          <div style="font-family:var(--font-d);font-size:18px;color:var(--text);">Your Bills</div>
+          <div class="filter-tabs">
+            <div class="ftab on" id="ft-all"      onclick="setFilter('all')" data-i18n="view_all">All</div>
+<div class="ftab"    id="ft-upcoming" onclick="setFilter('upcoming')" data-i18n="upcoming">Upcoming</div>
+<div class="ftab"    id="ft-overdue"  onclick="setFilter('overdue')" data-i18n="overdue">Overdue</div>
+<div class="ftab"    id="ft-paid"     onclick="setFilter('paid')" data-i18n="paid">Paid</div>
+          </div>
+        </div>
+        <div id="billsList"></div>
+      </div>
+
+      <!-- CALENDAR VIEW -->
+      <div id="calView" style="display:none;">
+        <div class="calendar-card">
+          <div class="cal-header">
+            <span class="cal-title">📅 Bill Calendar</span>
+            <div class="cal-nav">
+              <button class="cal-nav-btn" onclick="changeCalMonth(-1)">‹</button>
+              <div class="cal-month-label" id="calMonthLabel">—</div>
+              <button class="cal-nav-btn" onclick="changeCalMonth(1)">›</button>
+            </div>
+          </div>
+          <div class="cal-body">
+            <div class="cal-days-header">
+              <div class="cal-day-name">Sun</div><div class="cal-day-name">Mon</div>
+              <div class="cal-day-name">Tue</div><div class="cal-day-name">Wed</div>
+              <div class="cal-day-name">Thu</div><div class="cal-day-name">Fri</div>
+              <div class="cal-day-name">Sat</div>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COL -->
+    <div class="right-col">
+      <div class="add-card">
+        <div class="add-hdr">➕ Add Bill Reminder</div>
+        <div class="add-body">
+          <div class="field"><label data-i18n="bill_name">Bill Name</label><input type="text" id="b-name" placeholder="e.g. Electricity, Netflix…"/></div>
+          <div class="field-2">
+            <div class="field"><label>Amount (₹)</label><input type="number" id="b-amount" placeholder="0" min="0"/></div>
+            <div class="field"><label>Due Date</label><input type="date" id="b-date"/></div>
+          </div>
+          <div class="field">
+            <div class="filter-field">
+            <label data-i18n="category">Category</label>
+            <select id="b-category">
+              <option value="Electricity">⚡ Electricity</option><option value="Water">💧 Water</option>
+              <option value="Internet">🌐 Internet</option><option value="Phone">📱 Phone</option>
+              <option value="Rent">🏠 Rent</option><option value="Insurance">🛡️ Insurance</option>
+              <option value="Subscription">📺 Subscription</option><option value="Gas">🔥 Gas</option>
+              <option value="EMI">🏦 EMI / Loan</option><option value="Other">📌 Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Repeat</label>
+            <select id="b-repeat">
+              <option value="once">One Time</option><option value="monthly" selected>Monthly</option>
+              <option value="quarterly">Quarterly</option><option value="yearly">Yearly</option>
+            </select>
+          </div>
+          <button class="btn-add-bill" onclick="addBill()">+ Add Bill</button>
+        </div>
+      </div>
+
+      <div class="upcoming-card">
+        <div class="upcoming-title">📅 <span data-i18n="upcoming">Due This Week</span></div>
+        <div id="upcomingList"></div>
+      </div>
+
+      <div class="legend-card">
+        <div class="legend-title">🎨 Category Colors</div>
+        <div class="legend-grid" id="legendGrid"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- EDIT MODAL -->
+<div class="modal-bg" id="editModal" onclick="handleBg(event)">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-ttl">✏️ Edit Bill</span>
+      <button class="modal-x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-bdy">
+      <input type="hidden" id="e-id"/>
+      <div class="m-field"><label data-i18n="bill_name">Bill Name</label><input type="text" id="e-name"/></div>
+      <div class="m-row-2">
+        <div class="m-field"><label>Amount (₹)</label><input type="number" id="e-amount" min="0"/></div>
+        <div class="m-field"><label data-i18n="due_date">Due Date</label><input type="date" id="e-date"/></div>
+      </div>
+      <div class="m-field">
+        <label data-i18n="category">Category</label>
+        <select id="e-category">
+          <option value="Electricity">⚡ Electricity</option><option value="Water">💧 Water</option>
+          <option value="Internet">🌐 Internet</option><option value="Phone">📱 Phone</option>
+          <option value="Rent">🏠 Rent</option><option value="Insurance">🛡️ Insurance</option>
+          <option value="Subscription">📺 Subscription</option><option value="Gas">🔥 Gas</option>
+          <option value="EMI">🏦 EMI / Loan</option><option value="Other">📌 Other</option>
+        </select>
+      </div>
+      <div class="m-field">
+        <label>Repeat</label>
+        <select id="e-repeat">
+          <option value="once">One Time</option><option value="monthly">Monthly</option>
+          <option value="quarterly">Quarterly</option><option value="yearly">Yearly</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save"   onclick="saveEdit()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="userdata.js"></script>
+<script>
+if (!localStorage.getItem('token')) window.location.href = 'login.html';
+
+let bills = [];
+let activeFilter = 'all', activeView = 'list';
+let calDate = new Date();
+
+const CAT_COLORS = {
+  Electricity:'#f5c542', Water:'#4a9eff', Internet:'#26d4ee', Phone:'#b07aff',
+  Rent:'#52b052', Insurance:'#f06292', Subscription:'#e8a030', Gas:'#ff8c42',
+  EMI:'#e05555', Other:'#8a9bb0'
+};
+const CAT_ICONS = {
+  Electricity:'⚡', Water:'💧', Internet:'🌐', Phone:'📱',
+  Rent:'🏠', Insurance:'🛡️', Subscription:'📺', Gas:'🔥', EMI:'🏦', Other:'📌'
+};
+
+function init() {
+  bills = JSON.parse(localStorage.getItem('bt_bills') || '[]');
+  const name  = localStorage.getItem('userName')  || localStorage.getItem('name')  || 'User';
+  const email = localStorage.getItem('userEmail') || localStorage.getItem('email') || '';
+  document.getElementById('avatarLetter').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('profileName').textContent  = name;
+  document.getElementById('profileEmail').textContent = email || '—';
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  document.getElementById('b-date').value = tomorrow.toISOString().split('T')[0];
+  renderLegend();
+  render();
+}
+
+function fmt(n) {
+  const lang = localStorage.getItem('bt_language') || 'en';
+  const localeMap = {en:'en-IN',hi:'hi-IN',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',ar:'ar-SA',fr:'fr-FR',de:'de-DE',es:'es-ES',pt:'pt-BR',ru:'ru-RU'};
+  const locale = localeMap[lang] || 'en-IN';
+  const sym = localStorage.getItem('bt_currency_sym') || '₹';
+return sym+Number(n).toLocaleString(locale,{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+function esc(s)  { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtD(d) {
+  if(!d) return '—';
+  const lang = localStorage.getItem('bt_language') || 'en';
+  const localeMap = {en:'en-IN',hi:'hi-IN',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',ar:'ar-SA',fr:'fr-FR',de:'de-DE',es:'es-ES',pt:'pt-BR',ru:'ru-RU'};
+  const locale = localeMap[lang] || 'en-IN';
+  return new Date(d+'T00:00:00').toLocaleDateString(locale,{day:'numeric',month:'short'});
+}
+function getDaysLeft(dateStr) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.ceil((new Date(dateStr+'T00:00:00') - today) / 86400000);
+}
+function getStatus(b) {
+  if (b.paid) return 'paid';
+  const d = getDaysLeft(b.date);
+  if (d < 0)  return 'overdue';
+  if (d <= 7) return 'due-soon';
+  return 'upcoming';
+}
+
+function render() { renderStats(); renderOverdueBanner(); renderBills(); renderCalendar(); renderUpcoming(); }
+
+function renderStats() {
+  const now=new Date(), m=now.getMonth(), y=now.getFullYear();
+  document.getElementById('st-total').textContent   = bills.length;
+  document.getElementById('st-active').textContent  = bills.filter(b=>!b.paid).length+' active';
+  document.getElementById('st-overdue').textContent = bills.filter(b=>!b.paid&&getDaysLeft(b.date)<0).length;
+  document.getElementById('st-week').textContent    = bills.filter(b=>!b.paid&&getDaysLeft(b.date)>=0&&getDaysLeft(b.date)<=7).length;
+  document.getElementById('st-paid').textContent    = bills.filter(b=>{
+    if(!b.paid||!b.paidDate)return false;
+    const d=new Date(b.paidDate+'T00:00:00');
+    return d.getMonth()===m&&d.getFullYear()===y;
+  }).length;
+}
+
+function renderOverdueBanner() {
+  const overdue = bills.filter(b=>!b.paid&&getDaysLeft(b.date)<0);
+  const banner  = document.getElementById('overdueBanner');
+  if (!overdue.length) { banner.classList.remove('show'); return; }
+  banner.classList.add('show');
+  document.getElementById('bannerTitle').textContent = `🚨 You have ${overdue.length} overdue bill${overdue.length>1?'s':''}!`;
+  document.getElementById('bannerTags').innerHTML = overdue.map(b=>
+    `<span class="banner-tag">${CAT_ICONS[b.category]||'📌'} ${esc(b.name)} · ${fmt(b.amount)}</span>`
+  ).join('');
+}
+
+function renderBills() {
+  const box = document.getElementById('billsList');
+  let list  = [...bills].sort((a,b)=>{ if(a.paid&&!b.paid)return 1; if(!a.paid&&b.paid)return -1; return new Date(a.date)-new Date(b.date); });
+  if (activeFilter==='upcoming') list=list.filter(b=>['upcoming','due-soon'].includes(getStatus(b)));
+  if (activeFilter==='overdue')  list=list.filter(b=>getStatus(b)==='overdue');
+  if (activeFilter==='paid')     list=list.filter(b=>getStatus(b)==='paid');
+  if (!list.length) {
+    box.innerHTML=`<div class="empty-bills"><div class="empty-ico">${activeFilter==='paid'?'✅':'🔔'}</div>
+      <h3>${activeFilter==='paid'?'No paid bills yet':'No bills yet'}</h3>
+      <p>${activeFilter==='paid'?'Bills you mark as paid appear here.':'Add your first bill using the form →'}</p></div>`;
+    return;
+  }
+  box.innerHTML = list.map(b => {
+    const status = getStatus(b);
+    const days   = getDaysLeft(b.date);
+    const color  = CAT_COLORS[b.category]||'#8a9bb0';
+    const repeat = {once:'One time',monthly:'Monthly',quarterly:'Quarterly',yearly:'Yearly'}[b.repeat||'once'];
+    let pillHtml='', pillClass='pill-'+status;
+    if      (b.paid)    pillHtml = '✅ Paid';
+    else if (days<0)    pillHtml = `<span class="pill-num">${Math.abs(days)}</span> day${Math.abs(days)!==1?'s':''} overdue`;
+    else if (days===0)  pillHtml = '⚡ Due Today';
+    else if (days===1)  pillHtml = '⏰ Due Tomorrow';
+    else                pillHtml = `<span class="pill-num">${days}</span> days left`;
+    return `<div class="bill-card ${status}">
+      <div class="bill-top">
+        <div class="bill-ico" style="background:${color}18;border:1px solid ${color}40;">${CAT_ICONS[b.category]||'📌'}</div>
+        <div class="bill-info">
+          <div class="bill-name-row">
+            <div class="bill-name">${esc(b.name)}</div>
+            <div class="cat-color-dot" style="background:${color};" title="${b.category}"></div>
+          </div>
+          <span class="countdown-pill ${pillClass}">${pillHtml}</span>
+        </div>
+        <div class="bill-actions">
+          ${!b.paid?`<button class="btn-pay" onclick="markPaid('${b.id}')">✅ Pay</button>`:`<span class="btn-paid-badge">✅ Paid</span>`}
+          <button class="btn-edit-bill" onclick="openEdit('${b.id}')">✏️</button>
+          <button class="btn-del-bill"  onclick="delBill('${b.id}')">🗑️</button>
+        </div>
+      </div>
+      <div class="bill-bottom">
+        <div class="bill-amount ${status==='overdue'?'red':''}">${fmt(b.amount)}</div>
+        <span class="bill-recur">🔄 ${repeat}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCalendar() {
+  const y=calDate.getFullYear(), m=calDate.getMonth();
+  document.getElementById('calMonthLabel').textContent = new Date(y,m,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+  const firstDay=new Date(y,m,1).getDay(), daysInMonth=new Date(y,m+1,0).getDate(), daysInPrev=new Date(y,m,0).getDate();
+  const today=new Date(); today.setHours(0,0,0,0);
+  const billMap={};
+  bills.forEach(b=>{
+    const d=new Date(b.date+'T00:00:00');
+    if(d.getMonth()===m&&d.getFullYear()===y){ const k=d.getDate(); if(!billMap[k])billMap[k]=[]; billMap[k].push(b); }
+  });
+  let html='';
+  for(let i=firstDay-1;i>=0;i--) html+=`<div class="cal-cell other-month"><div class="cal-date">${daysInPrev-i}</div></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const isToday=new Date(y,m,d).getTime()===today.getTime();
+    const dayBills=billMap[d]||[];
+    const chips=dayBills.slice(0,2).map(b=>{
+      const c=CAT_COLORS[b.category]||'#8a9bb0';
+      return `<div class="cal-bill-chip ${b.paid?'cal-bill-paid':''}" style="background:${c}18;color:${c};" title="${b.name} — ${fmt(b.amount)}">
+        <span class="chip-dot" style="background:${c};"></span>${esc(b.name.length>6?b.name.slice(0,6)+'…':b.name)}</div>`;
+    }).join('');
+    const more=dayBills.length>2?`<div class="cal-more">+${dayBills.length-2} more</div>`:'';
+    html+=`<div class="cal-cell ${isToday?'today':''} ${dayBills.length?'has-bills':''}"><div class="cal-date">${d}</div>${chips}${more}</div>`;
+  }
+  const total=Math.ceil((firstDay+daysInMonth)/7)*7;
+  for(let i=1;i<=total-firstDay-daysInMonth;i++) html+=`<div class="cal-cell other-month"><div class="cal-date">${i}</div></div>`;
+  document.getElementById('calGrid').innerHTML=html;
+}
+
+function changeCalMonth(dir) { calDate.setMonth(calDate.getMonth()+dir); renderCalendar(); }
+
+function renderUpcoming() {
+  const box=document.getElementById('upcomingList');
+  const list=bills.filter(b=>!b.paid&&getDaysLeft(b.date)>=0&&getDaysLeft(b.date)<=7).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if(!list.length){box.innerHTML='<div style="font-size:13px;color:#7a9870;">No bills due this week 🎉</div>';return;}
+  box.innerHTML=list.map(b=>`<div class="up-row">
+    <div class="up-ico">${CAT_ICONS[b.category]||'📌'}</div>
+    <div class="up-info"><div class="up-name">${esc(b.name)}</div><div class="up-date">${getDaysLeft(b.date)===0?'Today':getDaysLeft(b.date)===1?'Tomorrow':fmtD(b.date)}</div></div>
+    <div class="up-amt">${fmt(b.amount)}</div>
+  </div>`).join('');
+}
+
+function renderLegend() {
+  document.getElementById('legendGrid').innerHTML=Object.entries(CAT_COLORS).map(([cat,color])=>
+    `<div class="legend-item"><div class="legend-dot" style="background:${color};"></div><span>${CAT_ICONS[cat]} ${cat}</span></div>`
+  ).join('');
+}
+
+function addBill() {
+  const name=document.getElementById('b-name').value.trim();
+  const amount=parseFloat(document.getElementById('b-amount').value);
+  const date=document.getElementById('b-date').value;
+  const category=document.getElementById('b-category').value;
+  const repeat=document.getElementById('b-repeat').value;
+  if(!name)             return showToast('Enter a bill name',true);
+  if(!amount||amount<=0) return showToast('Enter a valid amount',true);
+  if(!date)             return showToast('Select a due date',true);
+  bills.push({id:Date.now().toString(),name,amount,date,category,repeat,paid:false,createdAt:new Date().toISOString()});
+  save(); render();
+  document.getElementById('b-name').value=''; document.getElementById('b-amount').value='';
+  showToast('Bill added: '+name+' 🔔');
+}
+
+function markPaid(id) {
+  const idx=bills.findIndex(b=>b.id===id); if(idx===-1)return;
+  const billName=bills[idx].name;
+  bills[idx].paid=true; bills[idx].paidDate=new Date().toISOString().split('T')[0];
+
+  // ── AUTO ADD TO EXPENSES (so total spent updates on dashboard) ──
+  try {
+    const expenses = JSON.parse(localStorage.getItem('bt_expenses') || '[]');
+    const newExp = {
+      id:       Date.now().toString(),
+      title:    bills[idx].name,
+      amount:   bills[idx].amount,
+      category: 'Bills',
+      date:     bills[idx].paidDate
+    };
+    expenses.push(newExp);
+    localStorage.setItem('bt_expenses', JSON.stringify(expenses));
+    localStorage.setItem('expenses',    JSON.stringify(expenses));
+  } catch(e) { console.warn('Expense sync error:', e); }
+
+  if(bills[idx].repeat!=='once'){
+    const next=new Date(bills[idx].date+'T00:00:00');
+    if(bills[idx].repeat==='monthly')   next.setMonth(next.getMonth()+1);
+    else if(bills[idx].repeat==='quarterly') next.setMonth(next.getMonth()+3);
+    else if(bills[idx].repeat==='yearly')    next.setFullYear(next.getFullYear()+1);
+    bills.push({...bills[idx],id:(Date.now()+1).toString(),paid:false,paidDate:null,date:next.toISOString().split('T')[0],createdAt:new Date().toISOString()});
+  }
+  save(); render();
+  showPaidAnimation(billName);
+}
+
+function showPaidAnimation(name) {
+  document.getElementById('paidTitle').textContent=`"${name}" Paid! 🎉`;
+  document.getElementById('paidOverlay').classList.add('show');
+  launchConfetti();
+  setTimeout(()=>{ document.getElementById('paidOverlay').classList.remove('show'); stopConfetti(); },2800);
+}
+
+/* CONFETTI */
+let cParticles=[],cAnim=null;
+const C_COLS=['#c9a84c','#52b052','#e8c86a','#4a9eff','#f06292','#e05555','#f5d87a','#26d4ee','#b07aff'];
+function launchConfetti(){
+  const cv=document.getElementById('confettiCanvas'); cv.style.display='block'; cv.width=window.innerWidth; cv.height=window.innerHeight;
+  const ctx=cv.getContext('2d'); cParticles=[];
+  for(let i=0;i<180;i++) cParticles.push({x:Math.random()*cv.width,y:Math.random()*cv.height-cv.height,w:Math.random()*12+5,h:Math.random()*6+3,color:C_COLS[Math.floor(Math.random()*C_COLS.length)],rot:Math.random()*360,rs:(Math.random()-.5)*7,vx:(Math.random()-.5)*5,vy:Math.random()*5+2,op:1});
+  function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    cParticles.forEach(p=>{
+      ctx.save(); ctx.translate(p.x+p.w/2,p.y+p.h/2); ctx.rotate(p.rot*Math.PI/180); ctx.globalAlpha=p.op; ctx.fillStyle=p.color; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore();
+      p.x+=p.vx; p.y+=p.vy; p.rot+=p.rs; p.vy+=0.09; if(p.y>cv.height) p.op-=0.04;
+    });
+    cParticles=cParticles.filter(p=>p.op>0);
+    if(cParticles.length>0) cAnim=requestAnimationFrame(draw); else stopConfetti();
+  }
+  cAnim=requestAnimationFrame(draw);
+}
+function stopConfetti(){
+  if(cAnim){cancelAnimationFrame(cAnim);cAnim=null;}
+  const cv=document.getElementById('confettiCanvas'); cv.style.display='none'; cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+}
+
+function openEdit(id){
+  const b=bills.find(x=>x.id===id); if(!b)return;
+  document.getElementById('e-id').value=b.id; document.getElementById('e-name').value=b.name;
+  document.getElementById('e-amount').value=b.amount; document.getElementById('e-date').value=b.date;
+  document.getElementById('e-category').value=b.category; document.getElementById('e-repeat').value=b.repeat||'once';
+  document.getElementById('editModal').classList.add('open');
+}
+function closeModal(){ document.getElementById('editModal').classList.remove('open'); }
+function handleBg(e){ if(e.target===document.getElementById('editModal'))closeModal(); }
+function saveEdit(){
+  const id=document.getElementById('e-id').value, name=document.getElementById('e-name').value.trim();
+  const amount=parseFloat(document.getElementById('e-amount').value), date=document.getElementById('e-date').value;
+  const cat=document.getElementById('e-category').value, repeat=document.getElementById('e-repeat').value;
+  if(!name)return showToast('Enter a bill name',true); if(!amount||amount<=0)return showToast('Enter a valid amount',true);
+  const idx=bills.findIndex(b=>b.id===id); if(idx===-1)return;
+  bills[idx]={...bills[idx],name,amount,date,category:cat,repeat};
+  save(); render(); closeModal(); showToast('Bill updated!');
+}
+function delBill(id){ if(!confirm('Delete this bill?'))return; bills=bills.filter(b=>b.id!==id); save(); render(); showToast('Bill deleted'); }
+function setFilter(f){ activeFilter=f; ['all','upcoming','overdue','paid'].forEach(x=>document.getElementById('ft-'+x).classList.toggle('on',x===f)); renderBills(); }
+function switchView(v){
+  activeView=v;
+  document.getElementById('vt-list').classList.toggle('on',v==='list');
+  document.getElementById('vt-cal').classList.toggle('on',v==='cal');
+  document.getElementById('listView').style.display=v==='list'?'block':'none';
+  document.getElementById('calView').style.display=v==='cal'?'block':'none';
+  if(v==='cal')renderCalendar();
+}
+function save(){ localStorage.setItem('bt_bills',JSON.stringify(bills)); }
+function toggleMenu(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
+function logout(){ localStorage.removeItem('token'); window.location.href='login.html'; }
+
+/* ── PROFILE POPUP ── */
+function toggleProfile(e) {
+  e.stopPropagation();
+  const popup = document.getElementById('profilePopup');
+  if (!popup) return;
+  const isOpen = popup.style.display === 'block';
+  popup.style.display = isOpen ? 'none' : 'block';
+  const name  = localStorage.getItem('userName') || localStorage.getItem('name') || 'User';
+  const email = localStorage.getItem('userEmail') || localStorage.getItem('email') || '—';
+  const pn = document.getElementById('popupName');  if (pn) pn.textContent  = name;
+  const pe = document.getElementById('popupEmail'); if (pe) pe.textContent = email;
+}
+document.addEventListener('click', function() {
+  const popup = document.getElementById('profilePopup');
+  if (popup) popup.style.display = 'none';
+});
+function showToast(msg,err){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast'+(err?' err':''); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); stopConfetti(); document.getElementById('paidOverlay').classList.remove('show'); }});
+window.addEventListener('resize',()=>{ const c=document.getElementById('confettiCanvas'); c.width=window.innerWidth; c.height=window.innerHeight; });
+
+/* AUTO HIGHLIGHT ACTIVE NAV */
+(function(){ const p=location.pathname.split('/').pop()||'index.html'; document.querySelectorAll('.nav-link').forEach(a=>{ a.classList.remove('active'); if(a.getAttribute('href')===p) a.classList.add('active'); }); })();
+
+init();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<script src="help-tour.js"></script>
+</body>
+</html>

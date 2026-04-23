@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="theme.js"></script>
+<script src="translations.js"></script>
+<script src="language.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Profile – BudgetTracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:          #080f08;
+  --bg2:         #0c140c;
+  --bg3:         #111a11;
+  --card:        #141f14;
+  --card2:       #1a2a1a;
+  --border:      #1f2f1f;
+  --border2:     #2a402a;
+  --green-dark:  #1a3d1a;
+  --green:       #2d6a2d;
+  --green-mid:   #3a8c3a;
+  --green-bright:#52b052;
+  --gold:        #c9a84c;
+  --gold-light:  #e8c86a;
+  --gold-bright: #f5d87a;
+  --gold-dim:    rgba(201,168,76,0.12);
+  --gold-border: rgba(201,168,76,0.25);
+  --red:         #e05555;
+  --red-dim:     rgba(224,85,85,0.1);
+  --text:        #e8f0e0;
+  --tmid:        #7a9870;
+  --tdim:        #3a5030;
+  --sidebar-w:   235px;
+  --font-d:      'DM Serif Display', serif;
+  --font-b:      'DM Sans', sans-serif;
+}
+body { font-family: var(--font-b); background: var(--bg); color: var(--text); min-height: 100vh; }
+.sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 100; transition: transform .3s; }
+.sidebar-logo { padding: 24px 20px 20px; border-bottom: 1px solid var(--border); font-family: var(--font-d); font-size: 20px; color: var(--text); display: flex; align-items: center; gap: 9px; text-decoration: none; }
+.logo-dot { width: 9px; height: 9px; background: var(--gold); border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 10px rgba(201,168,76,0.6); }
+.nav-section { flex: 1; padding: 16px 10px; overflow-y: auto; }
+.nav-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; color: var(--tdim); padding: 0 10px; margin: 16px 0 6px; }
+.nav-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; text-decoration: none; font-size: 13.5px; font-weight: 500; color: var(--tmid); transition: background .15s, color .15s; margin-bottom: 2px; }
+.nav-link:hover  { background: var(--bg3); color: var(--text); }
+.nav-link.active { background: var(--gold-dim); color: var(--gold-light); border: 1px solid var(--gold-border); }
+.nav-link .icon  { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+.sidebar-bottom { padding: 14px 10px; border-top: 1px solid var(--border); }
+.profile-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px; cursor: pointer; transition: background .15s; }
+.profile-row:hover { background: var(--bg3); }
+.avatar-sm { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: #0c0c00; font-family: var(--font-d); font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sidebar-name  { font-size: 13px; font-weight: 500; color: var(--text); }
+.sidebar-email { font-size: 11px; color:#7a9870; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 135px; }
+.logout-btn { width: 100%; margin-top: 10px; padding: 9px; background: var(--red-dim); color: #f09090; border: 1px solid rgba(224,85,85,0.2); border-radius: 8px; font-family: var(--font-b); font-size: 13px; font-weight: 500; cursor: pointer; transition: background .2s; }
+.logout-btn:hover { background: rgba(224,85,85,0.22); }
+.main { margin-left: var(--sidebar-w); padding: 36px 36px 60px; min-height: 100vh; }
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+.topbar-left h1 { font-family: var(--font-d); font-size: 26px; color: var(--text); }
+.topbar-left p  { font-size: 13px; color: var(--tdim); margin-top: 3px; }
+.back-btn { display: flex; align-items: center; gap: 6px; padding: 9px 18px; background: var(--gold-dim); border: 1px solid var(--gold-border); border-radius: 50px; color: var(--gold-light); font-size: 13px; font-weight: 500; text-decoration: none; transition: background .2s; }
+.back-btn:hover { background: rgba(201,168,76,0.22); }
+.page-grid { display: grid; grid-template-columns: 300px 1fr; gap: 22px; align-items: start; }
+.avatar-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; text-align: center; }
+.avatar-card-top { background: linear-gradient(135deg, var(--green-dark), var(--green)); padding: 36px 24px 24px; border-bottom: 1px solid rgba(201,168,76,0.15); position: relative; }
+.avatar-card-top::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--gold), var(--gold-light)); }
+.big-avatar { width: 90px; height: 90px; border-radius: 50%; margin: 0 auto 14px; background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: #0c0c00; font-family: var(--font-d); font-size: 38px; display: flex; align-items: center; justify-content: center; border: 3px solid rgba(201,168,76,0.4); box-shadow: 0 0 20px rgba(201,168,76,0.25); }
+.avatar-name  { font-family: var(--font-d); font-size: 20px; color: var(--text); margin-bottom: 4px; }
+.avatar-email { font-size: 12px; color: var(--tmid); }
+.avatar-card-body { padding: 20px; }
+.stat-mini { display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.stat-mini:last-child { border-bottom: none; }
+.stat-mini-label { font-size: 12px; color: var(--tmid); display: flex; align-items: center; gap: 6px; }
+.stat-mini-val   { font-family: var(--font-d); font-size: 16px; color: var(--text); }
+.stat-mini-val.green { color: #ffffff; }
+.stat-mini-val.gold  { color: #ffffff; }
+.stat-mini-val.red   { color: #ffffff; }
+.right-col { display: flex; flex-direction: column; gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.card-header { padding: 15px 22px; background: var(--green-dark); border-bottom: 1px solid rgba(201,168,76,0.15); display: flex; align-items: center; gap: 10px; }
+.card-header-icon { font-size: 17px; }
+.card-title { font-family: var(--font-d); font-size: 16px; color: var(--gold-light); }
+.card-body  { padding: 22px; }
+.field { margin-bottom: 16px; }
+.field label { font-size: 11px; font-weight: 600; color: #7a9870
+  ; text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 6px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.input-wrap { position: relative; }
+.input-prefix { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: 15px; pointer-events: none; color: var(--tdim); }
+.field input { width: 100%; padding: 11px 13px 11px 38px; background: var(--bg3); border: 1px solid var(--border2); border-radius: 10px; font-family: var(--font-b); font-size: 14px; color: #ffffff; outline: none; transition: border-color .2s, box-shadow .2s; }
+.field input.no-icon { padding-left: 13px; }
+.field input::placeholder { color: var(--tdim); }
+.field input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-dim); }
+.field input.is-error { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-dim); }
+.field-msg  { font-size: 12px; margin-top: 5px; }
+.field-msg.err { color: var(--red); }
+.field-msg.ok  { color: var(--green-bright); }
+.pw-str { margin-top: 8px; display: none; }
+.pw-str.show { display: block; }
+.pw-bars { display: flex; gap: 4px; margin-bottom: 4px; }
+.pw-bar  { height: 4px; flex: 1; border-radius: 4px; background: var(--border2); transition: background .3s; }
+.pw-bar.filled.weak   { background: var(--red); }
+.pw-bar.filled.fair   { background: var(--gold); }
+.pw-bar.filled.strong { background: var(--green-bright); }
+.pw-lbl { font-size: 11px; color: var(--tdim); }
+.btn-save { width: 100%; padding: 12px; border: none; border-radius: 10px; font-family: var(--font-b); font-size: 14px; font-weight: 600; cursor: pointer; background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #0c0c00; transition: opacity .2s, transform .15s; margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-save:hover { opacity: .88; transform: translateY(-1px); }
+.btn-save:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.spinner { width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.2); border-top-color: #0c0c00; border-radius: 50%; animation: spin .7s linear infinite; display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.danger-zone { background: var(--red-dim); border: 1px solid rgba(224,85,85,0.2); border-radius: 12px; padding: 16px 20px; }
+.danger-title { font-size: 13px; font-weight: 600; color: #f09090; margin-bottom: 8px; }
+.danger-desc  { font-size: 12px; color: var(--tmid); margin-bottom: 14px; line-height: 1.5; }
+.btn-danger { padding: 10px 20px; background: rgba(224,85,85,0.15); color: var(--red); border: 1px solid rgba(224,85,85,0.3); border-radius: 8px; font-family: var(--font-b); font-size: 13px; font-weight: 600; cursor: pointer; transition: background .2s; }
+.btn-danger:hover { background: rgba(224,85,85,0.25); }
+.activity-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.activity-row:last-child { border-bottom: none; }
+.activity-ico { font-size: 16px; width: 20px; flex-shrink: 0; }
+.activity-text { flex: 1; color: var(--tmid); }
+.activity-text b { color: var(--text); font-weight: 500; }
+.activity-time { font-size: 11px; color: var(--tdim); flex-shrink: 0; }
+.saved-strip { display: none; padding: 11px 16px; border-radius: 10px; margin-bottom: 16px; background: rgba(82,176,82,0.1); border: 1px solid rgba(82,176,82,0.25); font-size: 13px; color: var(--green-bright); align-items: center; gap: 8px; }
+.saved-strip.show { display: flex; }
+.toast { position: fixed; bottom: 22px; right: 24px; background: var(--gold); color: #0c0c00; padding: 11px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; z-index: 999; transform: translateY(50px); opacity: 0; transition: transform .35s cubic-bezier(.175,.885,.32,1.275), opacity .35s; pointer-events: none; }
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.err  { background: var(--red); color: #fff; }
+.menu-btn { display: none; position: fixed; top: 14px; left: 14px; z-index: 200; width: 38px; height: 38px; background: var(--green-dark); border: 1px solid var(--gold-border); border-radius: 9px; align-items: center; justify-content: center; color: var(--gold-light); font-size: 18px; cursor: pointer; }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 90; }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+@media (max-width: 900px) { .page-grid { grid-template-columns: 1fr; } }
+@media (max-width: 700px) {
+  .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay.open { display: block; } .main { margin-left: 0; padding: 72px 16px 40px; }
+  .menu-btn { display: flex; } .field-row { grid-template-columns: 1fr; }
+  .topbar { flex-direction: column; align-items: flex-start; gap: 12px; }
+}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" onclick="toggleMenu()">☰</button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleMenu()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <a class="sidebar-logo" href="welcome.html"><span class="logo-dot"></span>BudgetTracker</a>
+  <nav class="nav-section">
+    <div class="nav-label">Main</div>
+    <a href="index.html"          class="nav-link"><span class="icon">🏠</span> <span data-i18n="dashboard">Dashboard</span></a>
+<a href="income-expense.html" class="nav-link"><span class="icon">📊</span> <span data-i18n="income_expense">Income vs Expense</span></a>
+<a href="monthly.html"        class="nav-link"><span class="icon">📅</span> <span data-i18n="monthly_summary">Monthly Report</span></a>
+<a href="barchart.html"       class="nav-link"><span class="icon">📈</span> <span data-i18n="bar_chart">Bar Chart</span></a>
+<a href="savings-goals.html"  class="nav-link"><span class="icon">🏆</span> <span data-i18n="savings_goals">Savings Goals</span></a>
+<a href="bill-reminders.html" class="nav-link"><span class="icon">🔔</span> <span data-i18n="bill_reminders">Bill Reminders</span></a>
+<a href="pdf-report.html"     class="nav-link"><span class="icon">📄</span> <span data-i18n="pdf_report">PDF Report</span></a>
+ <a class="nav-link" onclick="HelpTour.start()" style="cursor:pointer;">
+  <span class="icon">🩵</span> Help Tour
+</a>  
+  </nav>
+  <div class="sidebar-bottom">
+    <!-- FIX: added onclick and cursor -->
+    <div class="profile-row" onclick="toggleProfile(event)" style="cursor:pointer;">
+      <div class="avatar-sm" id="sidebarAvatar">U</div>
+      <div>
+        <div class="sidebar-name"  id="sidebarName">User</div>
+        <div class="sidebar-email" id="sidebarEmail">—</div>
+      </div>
+      <span style="margin-left:auto;font-size:11px;color:#7a9870;">▲</span>
+    </div>
+  </div>
+</aside>
+
+<!-- PROFILE POPUP — moved OUTSIDE sidebar so z-index works correctly -->
+<div id="profilePopup" style="display:none;position:fixed;bottom:75px;left:10px;width:220px;background:#1a2a1a;border:1px solid rgba(201,168,76,0.25);border-radius:14px;padding:16px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+  <div style="font-size:14px;font-weight:700;color:#e8f0e0;margin-bottom:3px;" id="popupName">User</div>
+  <div style="font-size:11px;color:#7a9870;margin-bottom:12px;" id="popupEmail">—</div>
+  <div style="height:1px;background:#1f2f1f;margin-bottom:12px;"></div>
+  <a href="profile.html" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);border-radius:9px;color:#e8c86a;font-size:12px;font-weight:600;text-decoration:none;margin-bottom:6px;">👤 View Profile</a>
+  <a href="settings.html" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);border-radius:9px;color:#e8c86a;font-size:12px;font-weight:600;text-decoration:none;margin-bottom:6px;">⚙️ Budget & Settings</a>
+  <button onclick="logout()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(224,85,85,0.1);border:1px solid rgba(224,85,85,0.2);border-radius:9px;color:#f09090;font-size:12px;font-weight:600;cursor:pointer;">🚪 Sign Out</button>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>👤 My Profile</h1>
+      <p>Manage your account details and preferences</p>
+    </div>
+    <a href="index.html" class="back-btn">← Dashboard</a>
+  </div>
+
+  <div class="page-grid">
+
+    <!-- LEFT: AVATAR CARD -->
+    <div>
+      <div class="avatar-card">
+        <div class="avatar-card-top">
+          <div class="big-avatar" id="bigAvatar">U</div>
+          <div class="avatar-name"  id="displayName">User</div>
+          <div class="avatar-email" id="displayEmail">—</div>
+        </div>
+        <div class="avatar-card-body">
+          <div class="stat-mini">
+            <span class="stat-mini-label">💸 <span data-i18n="total_expenses">Total Expenses</span></span>
+            <span class="stat-mini-val red" id="sm-total">₹0</span>
+          </div>
+          <div class="stat-mini">
+            <span class="stat-mini-label">📋 <span data-i18n="total_transactions">Transactions</span></span>
+            <span class="stat-mini-val gold" id="sm-count">0</span>
+          </div>
+          <div class="stat-mini">
+            <span class="stat-mini-label">📅 <span data-i18n="this_month">This Month</span></span>
+            <span class="stat-mini-val green" id="sm-month">₹0</span>
+          </div>
+          <div class="stat-mini">
+            <span class="stat-mini-label">🎯 <span data-i18n="total_budget">Budget Set</span></span>
+            <span class="stat-mini-val gold" id="sm-budget">—</span>
+          </div>
+          <div class="stat-mini">
+            <span class="stat-mini-label">📆 <span data-i18n="member_since">Member Since</span></span>
+            <span class="stat-mini-val" id="sm-since">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right-col">
+
+      <div class="saved-strip" id="savedStrip">✅ Profile updated successfully!</div>
+
+      <!-- UPDATE PROFILE -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-header-icon">✏️</span>
+          <span class="card-title" data-i18n="update_profile">Update Profile</span>
+        </div>
+        <div class="card-body">
+          <div class="field-row">
+            <div class="field">
+              <label data-i18n="full_name">Full Name</label>
+              <div class="input-wrap">
+                <span class="input-prefix">👤</span>
+                <input type="text" id="inp-name" placeholder="Your full name" oninput="validateName()"/>
+              </div>
+              <div class="field-msg" id="name-msg"></div>
+            </div>
+            <div class="field">
+              <label data-i18n="email">Email Address</label>
+              <div class="input-wrap">
+                <span class="input-prefix">✉️</span>
+                <input type="email" id="inp-email" placeholder="your@email.com" oninput="validateEmail()"/>
+              </div>
+              <div class="field-msg" id="email-msg"></div>
+            </div>
+          </div>
+          <button class="btn-save" id="profile-btn" onclick="updateProfile()">
+            <span class="spinner" id="profile-spinner"></span>
+            <span id="profile-btn-text">💾 Save Profile</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- CHANGE PASSWORD -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-header-icon">🔑</span>
+          <span class="card-title" data-i18n="change_password">Change Password</span>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label data-i18n="current_password">Current Password</label>
+            <div class="input-wrap">
+              <span class="input-prefix">🔒</span>
+              <input type="password" id="cur-pw" placeholder="Enter current password"/>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label data-i18n="new_password">New Password</label>
+              <div class="input-wrap">
+                <span class="input-prefix">🔑</span>
+                <input type="password" id="new-pw" placeholder="Min 8 characters" oninput="checkStrength()"/>
+              </div>
+              <div class="pw-str" id="pw-str">
+                <div class="pw-bars">
+                  <div class="pw-bar" id="b1"></div><div class="pw-bar" id="b2"></div>
+                  <div class="pw-bar" id="b3"></div><div class="pw-bar" id="b4"></div>
+                </div>
+                <div class="pw-lbl" id="pw-lbl">Enter a new password</div>
+              </div>
+            </div>
+            <div class="field">
+              <label data-i18n="confirm_password">Confirm Password</label>
+              <div class="input-wrap">
+                <span class="input-prefix">✅</span>
+                <input type="password" id="conf-pw" placeholder="Repeat new password" oninput="checkMatch()"/>
+              </div>
+              <div class="field-msg" id="conf-msg"></div>
+            </div>
+          </div>
+          <button class="btn-save" id="pw-btn" onclick="changePassword()">
+            <span class="spinner" id="pw-spinner"></span>
+            <span id="pw-btn-text">🔑 Change Password</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- RECENT ACTIVITY -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-header-icon">🕒</span>
+          <span class="card-title" data-i18n="recent_transactions">Recent Activity</span>
+        </div>
+        <div class="card-body" style="padding-top:8px;">
+          <div id="activityList"></div>
+        </div>
+      </div>
+
+      <!-- DANGER ZONE -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-header-icon">⚠️</span>
+          <span class="card-title" style="color:#f09090;" data-i18n="delete_goal">Danger Zone</span>
+        </div>
+        <div class="card-body">
+          <div class="danger-zone">
+            <div class="danger-title">Clear All Data</div>
+            <div class="danger-desc">This will permanently delete all your expenses and budget settings. Your account will remain but all financial data will be erased. This cannot be undone.</div>
+            <button class="btn-danger" onclick="clearData()">🗑️ Clear All Expense Data</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+<script src="userdata.js"></script>
+<script>
+  if (!localStorage.getItem('token')) window.location.href = 'login.html';
+
+  function init() {
+    const name   = localStorage.getItem('userName')  || localStorage.getItem('name')  || 'User';
+    const email  = localStorage.getItem('userEmail') || localStorage.getItem('email') || '—';
+    const budget = parseFloat(localStorage.getItem('bt_budget') || '0');
+    const expenses = JSON.parse(localStorage.getItem('bt_expenses') || '[]');
+
+    document.getElementById('sidebarAvatar').textContent = name.charAt(0).toUpperCase();
+    document.getElementById('sidebarName').textContent   = name;
+    document.getElementById('sidebarEmail').textContent  = email;
+    document.getElementById('bigAvatar').textContent     = name.charAt(0).toUpperCase();
+    document.getElementById('displayName').textContent   = name;
+    document.getElementById('displayEmail').textContent  = email;
+    document.getElementById('inp-name').value  = name !== 'User' ? name : '';
+    document.getElementById('inp-email').value = email !== '—'   ? email : '';
+
+    const total  = expenses.reduce((s,e)=>s+e.amount,0);
+    const now    = new Date(); const m=now.getMonth(), y=now.getFullYear();
+    const mTotal = expenses.filter(e=>{ const d=new Date(e.date+'T00:00:00'); return d.getMonth()===m&&d.getFullYear()===y; }).reduce((s,e)=>s+e.amount,0);
+    document.getElementById('sm-total').textContent  = fmt(total);
+    document.getElementById('sm-count').textContent  = expenses.length;
+    document.getElementById('sm-month').textContent  = fmt(mTotal);
+    document.getElementById('sm-budget').textContent = budget > 0 ? fmt(budget) : '—';
+    document.getElementById('sm-since').textContent  = localStorage.getItem('joinDate') || now.toLocaleDateString('en-IN',{month:'short',year:'numeric'});
+    if (!localStorage.getItem('joinDate')) localStorage.setItem('joinDate', document.getElementById('sm-since').textContent);
+    renderActivity(expenses);
+  }
+
+function fmt(n) {
+  const lang = localStorage.getItem('bt_language') || 'en';
+  const localeMap = {en:'en-IN',hi:'hi-IN',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',ar:'ar-SA',fr:'fr-FR',de:'de-DE',es:'es-ES',pt:'pt-BR',ru:'ru-RU'};
+  const locale = localeMap[lang] || 'en-IN';
+  const sym = localStorage.getItem('bt_currency_sym') || '₹';
+return sym+Number(n).toLocaleString(locale,{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+  function renderActivity(expenses) {
+    const box  = document.getElementById('activityList');
+    const last = [...expenses].reverse().slice(0, 5);
+    if (!last.length) { box.innerHTML = '<div style="font-size:13px;color:var(--tdim);padding:8px 0;">No activity yet — add your first expense!</div>'; return; }
+    box.innerHTML = last.map(e => `
+      <div class="activity-row">
+        <span class="activity-ico">${catIcon(e.category)}</span>
+        <span class="activity-text">Added <b>${esc(e.title)}</b> in ${e.category}</span>
+        <span class="activity-time">${fmtD(e.date)} · ${fmt(e.amount)}</span>
+      </div>`).join('');
+  }
+
+  function catIcon(c) { const m={Food:'🛒',Transport:'🚌',Housing:'🏠',Health:'💊',Shopping:'🛍️',Entertainment:'🎬',Bills:'💡',Education:'📚',Other:'📌'}; return m[c]||'📌'; }
+  function fmtD(d) {
+  if(!d) return '—';
+  const lang = localStorage.getItem('bt_language') || 'en';
+  const localeMap = {en:'en-IN',hi:'hi-IN',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',ar:'ar-SA',fr:'fr-FR',de:'de-DE',es:'es-ES',pt:'pt-BR',ru:'ru-RU'};
+  const locale = localeMap[lang] || 'en-IN';
+  return new Date(d+'T00:00:00').toLocaleDateString(locale,{day:'numeric',month:'short'});
+}
+  function esc(s)  { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function validateName() {
+    const v=document.getElementById('inp-name').value.trim();
+    const m=document.getElementById('name-msg');
+    if (v.length>0 && v.length<2) { m.textContent='Name must be at least 2 characters'; m.className='field-msg err'; }
+    else if (v.length>=2)          { m.textContent='Looks good ✓'; m.className='field-msg ok'; }
+    else                           { m.textContent=''; m.className='field-msg'; }
+  }
+  function validateEmail() {
+    const v=document.getElementById('inp-email').value.trim();
+    const ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    const m=document.getElementById('email-msg');
+    if (v.length===0) { m.textContent=''; m.className='field-msg'; return; }
+    m.textContent = ok ? 'Valid ✓' : 'Enter a valid email';
+    m.className   = 'field-msg ' + (ok?'ok':'err');
+  }
+  function checkStrength() {
+    const pw=document.getElementById('new-pw').value;
+    document.getElementById('pw-str').classList.toggle('show', pw.length>0);
+    let score=0;
+    if(pw.length>=8) score++; if(/[A-Z]/.test(pw)) score++; if(/[0-9]/.test(pw)) score++; if(/[^A-Za-z0-9]/.test(pw)) score++;
+    const lvl=score<=1?'weak':score<=2?'fair':'strong';
+    ['b1','b2','b3','b4'].forEach((id,i)=>{ document.getElementById(id).className='pw-bar'+(i<score?' filled '+lvl:''); });
+    document.getElementById('pw-lbl').textContent={weak:'Weak',fair:'Fair — try adding symbols',strong:'Strong ✓'}[lvl];
+  }
+  function checkMatch() {
+    const nw=document.getElementById('new-pw').value;
+    const cf=document.getElementById('conf-pw').value;
+    const m=document.getElementById('conf-msg');
+    if (!cf) { m.textContent=''; m.className='field-msg'; return; }
+    m.textContent = cf===nw ? 'Passwords match ✓' : 'Passwords do not match';
+    m.className   = 'field-msg '+(cf===nw?'ok':'err');
+  }
+
+  async function updateProfile() {
+    const name  = document.getElementById('inp-name').value.trim();
+    const email = document.getElementById('inp-email').value.trim();
+    if (name.length>0 && name.length<2) return showToast('Name must be at least 2 characters', true);
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showToast('Enter a valid email', true);
+    const btn=document.getElementById('profile-btn'), sp=document.getElementById('profile-spinner'), bt=document.getElementById('profile-btn-text');
+    btn.disabled=true; sp.style.display='block'; bt.textContent='Saving…';
+    await new Promise(r=>setTimeout(r,700));
+    if (name)  { localStorage.setItem('userName', name);  localStorage.setItem('name', name); }
+    if (email) { localStorage.setItem('userEmail', email); localStorage.setItem('email', email); }
+    const token=localStorage.getItem('token');
+    if (token) { fetch('http://localhost:5000/api/auth/profile', { method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({ name, email }) }).catch(()=>{}); }
+    btn.disabled=false; sp.style.display='none'; bt.textContent='💾 Save Profile';
+    document.getElementById('savedStrip').classList.add('show');
+    setTimeout(()=>document.getElementById('savedStrip').classList.remove('show'), 4000);
+    showToast('Profile updated!');
+    init();
+  }
+
+  async function changePassword() {
+    const cur=document.getElementById('cur-pw').value, nw=document.getElementById('new-pw').value, conf=document.getElementById('conf-pw').value;
+    if (!cur) return showToast('Enter your current password', true);
+    if (nw.length < 8) return showToast('New password must be at least 8 characters', true);
+    if (nw !== conf) return showToast('Passwords do not match', true);
+    const btn=document.getElementById('pw-btn'), sp=document.getElementById('pw-spinner'), bt=document.getElementById('pw-btn-text');
+    btn.disabled=true; sp.style.display='block'; bt.textContent='Changing…';
+    const token=localStorage.getItem('token');
+    try {
+      if (token) {
+        const res = await fetch('http://localhost:5000/api/auth/change-password', { method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({ currentPassword: cur, newPassword: nw }) });
+        const data = await res.json();
+        if (!res.ok) { showToast(data.message||'Password change failed', true); btn.disabled=false; sp.style.display='none'; bt.textContent='🔑 Change Password'; return; }
+      }
+      document.getElementById('cur-pw').value=''; document.getElementById('new-pw').value=''; document.getElementById('conf-pw').value='';
+      document.getElementById('pw-str').classList.remove('show'); document.getElementById('conf-msg').textContent='';
+      showToast('Password changed successfully!');
+    } catch(e) { showToast('Server unavailable — password not changed', true); }
+    btn.disabled=false; sp.style.display='none'; bt.textContent='🔑 Change Password';
+  }
+
+  function clearData() {
+    if (!confirm('Are you sure? This will delete ALL your expenses and cannot be undone.')) return;
+    ['bt_expenses','bt_budget','expenses','budget','salary','saving','bt_incomes'].forEach(k=>localStorage.removeItem(k));
+    showToast('All expense data cleared');
+    setTimeout(() => init(), 500);
+  }
+
+  /* ── PROFILE POPUP ── */
+  function toggleProfile(e) {
+    e.stopPropagation();
+    const p = document.getElementById('profilePopup');
+    const name  = localStorage.getItem('userName') || localStorage.getItem('name') || 'User';
+    const email = localStorage.getItem('userEmail') || localStorage.getItem('email') || '—';
+    document.getElementById('popupName').textContent  = name;
+    document.getElementById('popupEmail').textContent = email;
+    p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  }
+  document.addEventListener('click', function() {
+    const p = document.getElementById('profilePopup');
+    if (p) p.style.display = 'none';
+  });
+
+  function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
+  function logout()     { localStorage.removeItem('token'); window.location.href='login.html'; }
+  function showToast(msg, err) { const t=document.getElementById('toast'); t.textContent=msg; t.className='toast'+(err?' err':''); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+
+  init();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<script src="help-tour.js"></script>
+</body>
+</html>

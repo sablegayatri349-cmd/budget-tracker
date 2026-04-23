@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="theme.js"></script>
+  <script src="business-userdata.js"></script>
+<script src="translations.js"></script>
+<script src="language.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Business Dashboard – BudgetTracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:          #080f08;
+  --bg2:         #0c140c;
+  --bg3:         #111a11;
+  --card:        #141f14;
+  --card2:       #1a2a1a;
+  --border:      #1f2f1f;
+  --border2:     #2a402a;
+  --green-dark:  #1a3d1a;
+  --green:       #2d6a2d;
+  --green-mid:   #3a8c3a;
+  --green-bright:#52b052;
+  --gold:        #c9a84c;
+  --gold-light:  #e8c86a;
+  --gold-bright: #f5d87a;
+  --gold-dim:    rgba(201,168,76,0.12);
+  --gold-border: rgba(201,168,76,0.25);
+  --red:         #e05555;
+  --red-dim:     rgba(224,85,85,0.12);
+  --in-color:    #52b052;
+  --in-dim:      rgba(82,176,82,0.12);
+  --in-border:   rgba(82,176,82,0.3);
+  --out-color:   #e05555;
+  --out-dim:     rgba(224,85,85,0.12);
+  --out-border:  rgba(224,85,85,0.3);
+  --text:        #e8f0e0;
+  --tmid:        #7a9870;
+  --tdim:        #3a5030;
+  --label:       #c9a84c;
+  --sidebar-w:   235px;
+  --font-d:      'DM Serif Display', serif;
+  --font-b:      'DM Sans', sans-serif;
+}
+body { font-family: var(--font-b); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar { position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;transition:transform .3s; }
+.sidebar-logo { padding:24px 20px 20px;border-bottom:1px solid var(--border);font-family:var(--font-d);font-size:20px;color:var(--text);display:flex;align-items:center;gap:9px;text-decoration:none; }
+.logo-dot { width:9px;height:9px;background:var(--gold);border-radius:50%;flex-shrink:0;box-shadow:0 0 10px rgba(201,168,76,0.6); }
+.nav-section { flex:1;padding:16px 10px;overflow-y:auto; }
+.nav-label { font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--tdim);padding:0 10px;margin:16px 0 6px; }
+.nav-link { display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;text-decoration:none;font-size:13.5px;font-weight:500;color:var(--tmid);transition:background .15s,color .15s;margin-bottom:2px; }
+.nav-link:hover  { background:var(--bg3);color:var(--text); }
+.nav-link.active { background:var(--gold-dim);color:var(--gold-light);border:1px solid var(--gold-border); }
+.nav-link .icon  { font-size:15px;width:20px;text-align:center;flex-shrink:0; }
+.sidebar-bottom { padding:14px 10px;border-top:1px solid var(--border); }
+.profile-row { display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;transition:background .15s; }
+.profile-row:hover { background:var(--bg3); }
+.avatar { width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-bright));color:#0c0c00;font-family:var(--font-d);font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.profile-name  { font-size:13px;font-weight:500;color:var(--text); }
+.profile-email { font-size:11px;color:#7a9870;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:135px; }
+
+/* ── PROFILE POPUP ── */
+.profile-popup { position:fixed;bottom:75px;left:10px;width:220px;background:var(--card2);border:1px solid var(--gold-border);border-radius:14px;padding:16px;display:none;z-index:999;box-shadow:0 8px 32px rgba(0,0,0,0.5);animation:popIn .2s cubic-bezier(.175,.885,.32,1.275); }
+@keyframes popIn { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;} }
+.profile-popup.open { display:block; }
+.popup-name  { font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px; }
+.popup-email { font-size:11px;color:#7a9870;margin-bottom:12px;word-break:break-all; }
+.popup-divider { height:1px;background:var(--border);margin-bottom:12px; }
+.popup-btn { display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:9px;color:var(--gold-light);font-size:12px;font-weight:600;cursor:pointer;transition:background .15s;text-decoration:none;margin-bottom:6px; }
+.popup-btn:hover { background:rgba(201,168,76,0.25); }
+.popup-btn-danger { display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:var(--red-dim);border:1px solid rgba(224,85,85,0.2);border-radius:9px;color:#f09090;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s;margin-top:2px; }
+.popup-btn-danger:hover { background:rgba(224,85,85,0.22); }
+
+/* ── MAIN ── */
+.main { margin-left:var(--sidebar-w);padding:32px 32px 60px;min-height:100vh; }
+.topbar { display:flex;justify-content:space-between;align-items:center;margin-bottom:28px; }
+.topbar-title { font-family:var(--font-d);font-size:28px;color:var(--text); }
+.topbar-date  { font-size:12px;color:#7a9870;margin-top:3px; }
+.mode-badge { display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:50px;font-size:13px;font-weight:600;background:var(--gold-dim);border:1px solid var(--gold-border);color:var(--gold-light); }
+
+/* ── STATS ── */
+.stats-row { display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px; }
+.stat { background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 22px;position:relative;overflow:hidden;transition:transform .2s,border-color .25s; }
+.stat:hover { transform:translateY(-2px);border-color:var(--gold-border); }
+.stat-stripe { position:absolute;top:0;left:0;right:0;height:2px; }
+.stat-label { font-size:11px;color:var(--label);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;margin-top:8px; }
+.stat-val   { font-family:var(--font-d);font-size:27px;color:var(--text);line-height:1; }
+.stat-sub   { font-size:12px;color:#7a9870;margin-top:5px;font-weight:500; }
+
+/* ── BODY GRID ── */
+.body-grid { display:grid;grid-template-columns:1fr 330px;gap:18px; }
+.left-col  { display:flex;flex-direction:column;gap:18px; }
+.right-col { display:flex;flex-direction:column;gap:16px; }
+
+/* ── CHARTS ── */
+.chart-pair { display:grid;grid-template-columns:1fr 1fr;gap:14px; }
+.chart-card { background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px; }
+.chart-card-title { font-size:11px;font-weight:600;color:var(--label);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px; }
+.chart-wrap { position:relative;height:170px; }
+
+/* ── TRANSACTION CARD ── */
+.txn-card { background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden; }
+.txn-card-header { padding:15px 20px;background:var(--green-dark);border-bottom:1px solid rgba(201,168,76,0.2);display:flex;align-items:center;justify-content:space-between; }
+.txn-card-title { font-family:var(--font-d);font-size:16px;color:var(--gold-light); }
+.txn-header-right { display:flex;align-items:center;gap:10px; }
+.search-wrap { position:relative; }
+.search-ico { position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--tdim);pointer-events:none; }
+.txn-search { padding:6px 12px 6px 28px;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;font-size:12px;color:var(--text);outline:none;width:155px; }
+.txn-search:focus { border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim); }
+.txn-search::placeholder { color:var(--tdim); }
+.count-badge { font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--gold-dim);color:var(--gold-light);border:1px solid var(--gold-border); }
+
+/* ── FILTER PILLS ── */
+.filter-row { display:flex;gap:6px;padding:10px 20px;border-bottom:1px solid var(--border);overflow-x:auto;flex-wrap:wrap;background:var(--card2); }
+.fpill { padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;background:var(--bg3);border:1px solid var(--border2);color:#7a9870;cursor:pointer;transition:all .15s;white-space:nowrap; }
+.fpill:hover { border-color:var(--gold-border);color:var(--gold-light); }
+.fpill.on    { background:var(--gold-dim);border-color:var(--gold-border);color:var(--gold-light); }
+.fpill.in-on  { background:var(--in-dim);border-color:var(--in-border);color:var(--in-color); }
+.fpill.out-on { background:var(--out-dim);border-color:var(--out-border);color:var(--out-color); }
+
+/* ── TRANSACTION ROWS ── */
+.txn-rows { max-height:360px;overflow-y:auto; }
+.txn-row { display:flex;align-items:center;gap:14px;padding:11px 20px;border-bottom:1px solid var(--border);transition:background .15s;animation:rowIn .2s ease; }
+@keyframes rowIn { from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:none;} }
+.txn-row:last-child { border-bottom:none; }
+.txn-row:hover { background:var(--card2); }
+.txn-type-badge { width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0; }
+.txn-type-badge.in  { background:var(--in-dim);color:var(--in-color); }
+.txn-type-badge.out { background:var(--out-dim);color:var(--out-color); }
+.txn-info { flex:1;min-width:0; }
+.txn-name { font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.txn-meta { font-size:11px;color:#7a9870;margin-top:2px; }
+.txn-right { display:flex;align-items:center;gap:8px;flex-shrink:0; }
+.txn-amt.in  { font-size:14px;font-weight:600;color:var(--in-color); }
+.txn-amt.out { font-size:14px;font-weight:600;color:var(--out-color); }
+.txn-date-badge { font-size:11px;padding:3px 8px;border-radius:6px;background:var(--bg3);color:var(--tdim);border:1px solid var(--border); }
+.btn-del { background:none;border:none;color:var(--tdim);cursor:pointer;padding:5px 7px;border-radius:7px;font-size:13px;transition:all .15s; }
+.btn-del:hover { background:var(--red-dim);color:var(--red); }
+.txn-empty { padding:40px 20px;text-align:center;color:var(--tdim);font-size:13px; }
+.txn-empty-ico { font-size:32px;margin-bottom:8px; }
+
+/* ── ADD TRANSACTION CARD ── */
+.add-card { background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden; }
+.add-card-header { padding:15px 20px;background:var(--green-dark);border-bottom:1px solid rgba(201,168,76,0.2);font-family:var(--font-d);font-size:16px;color:var(--gold-light); }
+.add-body { padding:16px 20px;display:flex;flex-direction:column;gap:12px; }
+
+/* ── IN/OUT TOGGLE ── */
+.type-toggle { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
+.type-btn { padding:11px;border-radius:10px;border:2px solid var(--border2);background:var(--bg3);font-family:var(--font-b);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px; }
+.type-btn.in  { color:var(--tdim); }
+.type-btn.out { color:var(--tdim); }
+.type-btn.in.active  { background:var(--in-dim);border-color:var(--in-color);color:var(--in-color); }
+.type-btn.out.active { background:var(--out-dim);border-color:var(--out-color);color:var(--out-color); }
+
+/* ── FIELDS ── */
+.field label { font-size:11px;font-weight:600;color:#7a9870;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px; }
+.field input,.field select,.field textarea { width:100%;padding:10px 13px;background:var(--bg3);border:1px solid var(--border2);border-radius:9px;font-family:var(--font-b);font-size:13px;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s; }
+.field input::placeholder,.field textarea::placeholder { color:var(--tdim); }
+.field input:focus,.field select:focus,.field textarea:focus { border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim); }
+.field select option { background:var(--bg3); }
+.field-2 { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+
+.btn-add-in {
+  width:100%;padding:12px;border:none;border-radius:10px;
+  font-family:var(--font-b);font-size:14px;font-weight:600;cursor:pointer;
+  background:linear-gradient(135deg,#2d6a2d,#52b052);
+  color:#fff;transition:opacity .2s,transform .15s;margin-top:2px;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.btn-add-out {
+  width:100%;padding:12px;border:none;border-radius:10px;
+  font-family:var(--font-b);font-size:14px;font-weight:600;cursor:pointer;
+  background:linear-gradient(135deg,#a33,#e05555);
+  color:#fff;transition:opacity .2s,transform .15s;margin-top:2px;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.btn-add-in:hover,.btn-add-out:hover { opacity:.88;transform:translateY(-1px); }
+
+/* ── INSIGHTS CARD ── */
+.ins-card { background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px; }
+.mini-title { font-family:var(--font-d);font-size:15px;color:var(--text);margin-bottom:14px; }
+.ins-row { display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--border);font-size:13px;color:var(--tmid);line-height:1.55; }
+.ins-row:first-of-type { border-top:none;padding-top:0; }
+.ins-ico { font-size:15px;flex-shrink:0;margin-top:1px; }
+
+/* ── PARTNERS CARD ── */
+.partners-card { background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden; }
+.partners-header { padding:15px 20px;background:var(--green-dark);border-bottom:1px solid rgba(201,168,76,0.2);font-family:var(--font-d);font-size:16px;color:var(--gold-light); }
+.partners-body { padding:16px 20px;display:flex;flex-direction:column;gap:12px; }
+.partner-count-row { display:flex;gap:8px; }
+.pcount-btn { flex:1;padding:9px;border-radius:9px;border:2px solid var(--border2);background:var(--bg3);font-family:var(--font-b);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--tmid);text-align:center; }
+.pcount-btn.active { background:var(--gold-dim);border-color:var(--gold);color:var(--gold-light); }
+.split-row { display:flex;gap:8px; }
+.split-btn { flex:1;padding:8px;border-radius:9px;border:1px solid var(--border2);background:var(--bg3);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--tmid);text-align:center; }
+.split-btn.active { background:var(--gold-dim);border-color:var(--gold-border);color:var(--gold-light); }
+.partner-input-row { display:flex;flex-direction:column;gap:8px; }
+.partner-inp { width:100%;padding:9px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:9px;font-family:var(--font-b);font-size:13px;color:var(--text);outline:none;transition:border-color .2s; }
+.partner-inp:focus { border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim); }
+.partner-inp::placeholder { color:var(--tdim); }
+.pct-inp { width:60px;padding:9px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:9px;font-family:var(--font-b);font-size:13px;color:var(--text);outline:none;text-align:center; }
+.pct-inp:focus { border-color:var(--gold); }
+.partner-row-inp { display:flex;align-items:center;gap:8px; }
+.partner-lbl { font-size:11px;color:var(--tdim);width:20px;text-align:center; }
+.btn-save-partners { width:100%;padding:10px;border:none;border-radius:9px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#0c0c00;font-family:var(--font-b);font-size:13px;font-weight:700;cursor:pointer;transition:opacity .2s; }
+.btn-save-partners:hover { opacity:.88; }
+.partner-results { display:flex;flex-direction:column;gap:8px;margin-top:4px; }
+.partner-result-row { display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px; }
+.p-name  { font-size:13px;font-weight:600;color:var(--text); }
+.p-pct   { font-size:11px;color:var(--tdim); }
+.p-share { font-family:var(--font-d);font-size:16px;color:var(--gold-light); }
+
+/* ── TOAST ── */
+.toast { position:fixed;bottom:22px;right:24px;background:var(--gold);color:#0c0c00;padding:11px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:999;transform:translateY(50px);opacity:0;transition:transform .35s cubic-bezier(.175,.885,.32,1.275),opacity .35s;pointer-events:none; }
+.toast.show { transform:translateY(0);opacity:1; }
+.toast.err  { background:var(--red);color:#fff; }
+
+/* ── MOBILE ── */
+.menu-btn { display:none;position:fixed;top:14px;left:14px;z-index:200;width:38px;height:38px;background:var(--green-dark);border:1px solid var(--gold-border);border-radius:9px;align-items:center;justify-content:center;color:var(--gold-light);font-size:18px;cursor:pointer; }
+.sidebar-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:90; }
+
+::-webkit-scrollbar { width:5px;height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border2);border-radius:3px; }
+
+@media(max-width:1100px) { .stats-row{grid-template-columns:repeat(2,1fr);} .chart-pair{grid-template-columns:1fr;} }
+@media(max-width:860px)  { .body-grid{grid-template-columns:1fr;} }
+@media(max-width:700px)  {
+  .sidebar{transform:translateX(-100%);} .sidebar.open{transform:translateX(0);}
+  .sidebar-overlay.open{display:block;} .main{margin-left:0;padding:72px 16px 40px;}
+  .menu-btn{display:flex;} .stats-row{grid-template-columns:1fr 1fr;}
+  .topbar{flex-direction:column;align-items:flex-start;gap:12px;}
+}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" onclick="toggleMenu()">☰</button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleMenu()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <a class="sidebar-logo" href="welcome.html"><span class="logo-dot"></span>BudgetTracker</a>
+  <nav class="nav-section">
+    <div class="nav-label">💼 Business</div>
+    <a href="business.html"          class="nav-link active"><span class="icon">💼</span> Business Dashboard</a>
+    <a href="business-report.html"   class="nav-link"><span class="icon">📊</span> Monthly Summary</a>
+    <a href="business-chart.html"    class="nav-link"><span class="icon">📈</span> Charts</a>
+    <a href="business-partners.html" class="nav-link"><span class="icon">🤝</span> Partners</a>
+    <div class="nav-label">Account</div>
+    <a href="business-setting.html"          class="nav-link"><span class="icon">⚙️</span> Settings</a>
+    <a href="profile.html"           class="nav-link"><span class="icon">👤</span> Profile</a>
+  <a class="nav-link" onclick="HelpTour.start()" style="cursor:pointer;">
+  <span class="icon">🩵</span> Help Tour
+</a>
+</nav>
+  <div class="sidebar-bottom">
+    <div class="profile-row" onclick="toggleProfile(event)" title="Click to open menu">
+      <div class="avatar" id="avatarLetter">U</div>
+      <div>
+        <div class="profile-name"  id="profileName">User</div>
+        <div class="profile-email" id="profileEmail">—</div>
+      </div>
+      <span style="margin-left:auto;font-size:11px;color:var(--tdim);">▲</span>
+    </div>
+  </div>
+</aside>
+
+<!-- PROFILE POPUP -->
+<div class="profile-popup" id="profilePopup">
+  <div class="popup-name"  id="popupName">User</div>
+  <div class="popup-email" id="popupEmail">—</div>
+  <div class="popup-divider"></div>
+  <a class="popup-btn" href="business-profile.html">👤 View Profile</a>
+  <a class="popup-btn" href="business-setting.html">⚙️ Budget &amp; Settings</a>
+  <button class="popup-btn-danger" onclick="logout()">🚪 Sign Out</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">💼 Business Dashboard</div>
+      <div class="topbar-date" id="topDate"></div>
+    </div>
+    <div class="mode-badge">💼 Business Mode</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-stripe" style="background:linear-gradient(90deg,var(--in-color),#80e080);"></div>
+      <div class="stat-label">Total Money IN</div>
+      <div class="stat-val" id="s-in">₹0</div>
+      <div class="stat-sub" id="s-in-count">0 transactions</div>
+    </div>
+    <div class="stat">
+      <div class="stat-stripe" style="background:linear-gradient(90deg,var(--red),#f08080);"></div>
+      <div class="stat-label">Total Money OUT</div>
+      <div class="stat-val" id="s-out">₹0</div>
+      <div class="stat-sub" id="s-out-count">0 transactions</div>
+    </div>
+    <div class="stat">
+      <div class="stat-stripe" style="background:linear-gradient(90deg,var(--gold),var(--gold-light));"></div>
+      <div class="stat-label">Net Profit</div>
+      <div class="stat-val" id="s-profit">₹0</div>
+      <div class="stat-sub" id="s-profit-sub">this month</div>
+    </div>
+    <div class="stat">
+      <div class="stat-stripe" style="background:linear-gradient(90deg,var(--green-dark),var(--green));"></div>
+      <div class="stat-label">Today's Net</div>
+      <div class="stat-val" id="s-today">₹0</div>
+      <div class="stat-sub" id="s-today-sub">today</div>
+    </div>
+  </div>
+
+  <div class="body-grid">
+    <!-- LEFT COLUMN -->
+    <div class="left-col">
+
+      <!-- CHARTS -->
+      <div class="chart-pair">
+        <div class="chart-card">
+          <div class="chart-card-title">💚 Income Breakdown</div>
+          <div class="chart-wrap"><canvas id="inPieChart"></canvas></div>
+          <div id="noInPie" style="text-align:center;color:var(--tdim);font-size:12px;padding:14px;display:none;">No income data yet</div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title">📊 Last 7 Days IN vs OUT</div>
+          <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+          <div id="noBar" style="text-align:center;color:var(--tdim);font-size:12px;padding:14px;display:none;">No data yet</div>
+        </div>
+      </div>
+
+      <!-- TRANSACTION LIST -->
+      <div class="txn-card">
+        <div class="txn-card-header">
+          <div class="txn-card-title">All Transactions</div>
+          <div class="txn-header-right">
+            <div class="search-wrap">
+              <span class="search-ico">🔍</span>
+              <input class="txn-search" id="searchBox" type="text" placeholder="Search…" oninput="renderList()"/>
+            </div>
+            <span class="count-badge" id="listBadge">0 items</span>
+          </div>
+        </div>
+        <div class="filter-row" id="filterRow"></div>
+        <div class="txn-rows"   id="txnRows"></div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right-col">
+
+      <!-- ADD TRANSACTION -->
+      <div class="add-card">
+        <div class="add-card-header">➕ Add Transaction</div>
+        <div class="add-body">
+
+          <!-- IN / OUT TOGGLE -->
+          <div class="type-toggle">
+            <button class="type-btn in active" id="btnIN"  onclick="setType('in')">💚 Money IN</button>
+            <button class="type-btn out"       id="btnOUT" onclick="setType('out')">🔴 Money OUT</button>
+          </div>
+
+          <!-- AMOUNT -->
+          <div class="field">
+            <label>Amount (₹)</label>
+            <input type="number" id="amount" placeholder="0" min="0"/>
+          </div>
+
+          <!-- FROM / TO -->
+          <div class="field">
+            <label id="fromToLabel">From (Who paid you?)</label>
+            <input type="text" id="fromTo" placeholder="e.g. Customer name, Client…"/>
+          </div>
+
+          <!-- CATEGORY -->
+          <div class="field">
+            <label>Category</label>
+            <select id="category">
+              <option value="Sales">🛒 Sales</option>
+              <option value="Service">🔧 Service</option>
+              <option value="Commission">💰 Commission</option>
+              <option value="Rent Received">🏠 Rent Received</option>
+              <option value="Investment">📈 Investment</option>
+              <option value="Other IN">📌 Other</option>
+            </select>
+          </div>
+
+          <!-- NOTE + DATE -->
+          <div class="field-2">
+            <div class="field">
+              <label>Note</label>
+              <input type="text" id="note" placeholder="Optional…"/>
+            </div>
+            <div class="field">
+              <label>Date</label>
+              <input type="date" id="date"/>
+            </div>
+          </div>
+
+          <!-- ADD BUTTON -->
+          <button class="btn-add-in" id="addBtn" onclick="addTransaction()">
+            <span id="addBtnText">+ Add Money IN</span>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- SMART INSIGHTS -->
+      <div class="ins-card">
+        <div class="mini-title">🤖 Business Insights</div>
+        <div id="insBox"></div>
+      </div>
+
+      <!-- PARTNERS CARD -->
+      <div class="partners-card">
+        <div class="partners-header">🤝 Partners Profit Split</div>
+        <div class="partners-body">
+
+          <!-- HOW MANY PARTNERS -->
+          <div>
+            <div style="font-size:11px;font-weight:600;color:#7a9870;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Number of Partners</div>
+            <div class="partner-count-row">
+              <button class="pcount-btn active" id="pc1" onclick="setPartnerCount(1)">1</button>
+              <button class="pcount-btn"        id="pc2" onclick="setPartnerCount(2)">2</button>
+              <button class="pcount-btn"        id="pc3" onclick="setPartnerCount(3)">3</button>
+            </div>
+          </div>
+
+          <!-- SPLIT TYPE -->
+          <div id="splitTypeRow" style="display:none;">
+            <div style="font-size:11px;font-weight:600;color:#7a9870;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Split Type</div>
+            <div class="split-row">
+              <button class="split-btn active" id="splitEqual"  onclick="setSplitType('equal')">⚖️ Equal</button>
+              <button class="split-btn"        id="splitCustom" onclick="setSplitType('custom')">✏️ Custom %</button>
+            </div>
+          </div>
+
+          <!-- PARTNER NAMES + % -->
+          <div class="partner-input-row" id="partnerInputs"></div>
+
+          <button class="btn-save-partners" onclick="savePartners()">💾 Save &amp; Calculate</button>
+
+          <!-- RESULTS -->
+          <div class="partner-results" id="partnerResults"></div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+if (!localStorage.getItem('token')) window.location.href = 'login.html';
+
+/* ── STATE ── */
+let transactions = [];
+let filter       = 'All';
+let txnType      = 'in';
+let partnerCount = 1;
+let splitType    = 'equal';
+let inPieChart   = null, barChartObj = null;
+
+const IN_CATEGORIES  = ['Sales','Service','Commission','Rent Received','Investment','Other IN'];
+const OUT_CATEGORIES = ['Stock','Salary','Rent','Transport','Utilities','Maintenance','Other OUT'];
+
+const IN_COLORS  = { Sales:'#52b052', Service:'#26d4ee', Commission:'#c9a84c', 'Rent Received':'#7eb8ff', Investment:'#b07aff', 'Other IN':'#8a9bb0' };
+const OUT_COLORS = { Stock:'#e05555', Salary:'#f06292', Rent:'#e8a030', Transport:'#ff8c42', Utilities:'#f5d87a', Maintenance:'#c97bff', 'Other OUT':'#8a9bb0' };
+
+/* ── LOAD ── */
+async function loadData() {
+  transactions = await BusinessData.getAll();
+  if (!Array.isArray(transactions)) transactions = [];
+}
+
+/* ── INIT ── */
+async function init() {
+  await loadData();
+  const name  = localStorage.getItem('userName')  || 'User';
+  const email = localStorage.getItem('userEmail') || '';
+  document.getElementById('avatarLetter').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('profileName').textContent  = name;
+  document.getElementById('profileEmail').textContent = email || '—';
+  document.getElementById('popupName').textContent    = name;
+  document.getElementById('popupEmail').textContent   = email || '—';
+  document.getElementById('topDate').textContent      = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('date').value               = new Date().toISOString().split('T')[0];
+  loadPartners();
+  await render();
+}
+
+/* ── RENDER ALL ── */
+async function render() {
+  await loadData();
+  renderStats();
+  renderCharts();
+  renderFilters();
+  renderList();
+  renderInsights();
+  renderPartnerResults();
+}
+
+function fmt(n) { return '₹'+Number(n).toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function fmtD(d) { if(!d)return'—'; return new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'}); }
+function esc(s)  { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ── STATS ── */
+function renderStats() {
+  const totalIn  = transactions.filter(t=>t.type==='in').reduce((s,t)=>s+(+t.amount||0),0);
+  const totalOut = transactions.filter(t=>t.type==='out').reduce((s,t)=>s+(+t.amount||0),0);
+  const profit   = totalIn - totalOut;
+
+  const today = new Date().toISOString().split('T')[0];
+  const todayIn  = transactions.filter(t=>t.type==='in'  && t.date===today).reduce((s,t)=>s+(+t.amount||0),0);
+  const todayOut = transactions.filter(t=>t.type==='out' && t.date===today).reduce((s,t)=>s+(+t.amount||0),0);
+  const todayNet = todayIn - todayOut;
+
+  document.getElementById('s-in').textContent         = fmt(totalIn);
+  document.getElementById('s-in-count').textContent   = transactions.filter(t=>t.type==='in').length + ' transactions';
+  document.getElementById('s-out').textContent        = fmt(totalOut);
+  document.getElementById('s-out-count').textContent  = transactions.filter(t=>t.type==='out').length + ' transactions';
+  document.getElementById('s-profit').textContent     = fmt(Math.abs(profit));
+  document.getElementById('s-profit').style.color     = profit >= 0 ? 'var(--in-color)' : 'var(--red)';
+  document.getElementById('s-profit-sub').textContent = profit >= 0 ? '✅ profit' : '🔴 loss';
+  document.getElementById('s-today').textContent      = fmt(Math.abs(todayNet));
+  document.getElementById('s-today').style.color      = todayNet >= 0 ? 'var(--in-color)' : 'var(--red)';
+  document.getElementById('s-today-sub').textContent  = todayNet >= 0 ? '✅ profit today' : '🔴 loss today';
+}
+
+/* ── CHARTS ── */
+function renderCharts() {
+  // IN Pie Chart
+  const inMap = {};
+  transactions.filter(t=>t.type==='in').forEach(t=>{ inMap[t.category]=(inMap[t.category]||0)+(+t.amount||0); });
+  const pl = Object.keys(inMap), pd = Object.values(inMap);
+  const pc = document.getElementById('inPieChart');
+  document.getElementById('noInPie').style.display = pl.length ? 'none' : 'block';
+  pc.style.display = pl.length ? 'block' : 'none';
+  if (inPieChart) { inPieChart.destroy(); inPieChart = null; }
+  if (pl.length) inPieChart = new Chart(pc, {
+    type:'doughnut',
+    data:{ labels:pl, datasets:[{data:pd, backgroundColor:pl.map(l=>IN_COLORS[l]||'#888'), borderWidth:2, borderColor:'#141f14', hoverOffset:8 }] },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'62%', plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>' '+c.label+': '+fmt(c.raw)}} } }
+  });
+
+  // Bar Chart — last 7 days IN vs OUT
+  const days=[], ins=[], outs=[];
+  for (let i=6;i>=0;i--) {
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const ds = d.toISOString().split('T')[0];
+    days.push(d.toLocaleDateString('en-IN',{weekday:'short'}));
+    ins.push(transactions.filter(t=>t.type==='in'  && t.date===ds).reduce((s,t)=>s+(+t.amount||0),0));
+    outs.push(transactions.filter(t=>t.type==='out' && t.date===ds).reduce((s,t)=>s+(+t.amount||0),0));
+  }
+  const bc = document.getElementById('barChart');
+  const hasData = ins.some(v=>v>0) || outs.some(v=>v>0);
+  document.getElementById('noBar').style.display = hasData ? 'none' : 'block';
+  bc.style.display = hasData ? 'block' : 'none';
+  if (barChartObj) { barChartObj.destroy(); barChartObj = null; }
+  if (hasData) barChartObj = new Chart(bc, {
+    type:'bar',
+    data:{ labels:days, datasets:[
+      { label:'IN',  data:ins,  backgroundColor:'rgba(82,176,82,0.5)',  borderColor:'#52b052', borderWidth:1.5, borderRadius:5 },
+      { label:'OUT', data:outs, backgroundColor:'rgba(224,85,85,0.5)',  borderColor:'#e05555', borderWidth:1.5, borderRadius:5 }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{ x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#7a9870',font:{size:11}}}, y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#7a9870',font:{size:11},callback:v=>'₹'+v}} },
+      plugins:{ legend:{labels:{color:'#7a9870',font:{size:11}}}, tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.raw)}} }
+    }
+  });
+}
+
+/* ── FILTERS ── */
+function renderFilters() {
+  const filters = ['All','IN','OUT'];
+  document.getElementById('filterRow').innerHTML = filters.map(f => {
+    let cls = 'fpill';
+    if (filter === f) cls += f==='IN' ? ' in-on' : f==='OUT' ? ' out-on' : ' on';
+    return `<div class="${cls}" onclick="setFilter('${f}')">${f==='IN'?'💚 ':f==='OUT'?'🔴 ':''}${f} <span style="opacity:.4;">${f==='All'?transactions.length:transactions.filter(t=>t.type===f.toLowerCase()).length}</span></div>`;
+  }).join('');
+}
+
+function setFilter(f) { filter=f; renderFilters(); renderList(); }
+
+/* ── TRANSACTION LIST ── */
+function renderList() {
+  const q = (document.getElementById('searchBox').value||'').toLowerCase();
+  let list = [...transactions].reverse();
+  if (filter==='IN')  list = list.filter(t=>t.type==='in');
+  if (filter==='OUT') list = list.filter(t=>t.type==='out');
+  if (q) list = list.filter(t=>(t.fromTo||'').toLowerCase().includes(q)||(t.category||'').toLowerCase().includes(q)||(t.note||'').toLowerCase().includes(q));
+  document.getElementById('listBadge').textContent = list.length + ' items';
+  const box = document.getElementById('txnRows');
+  if (!list.length) {
+    box.innerHTML = `<div class="txn-empty"><div class="txn-empty-ico">📭</div>No transactions found</div>`;
+    return;
+  }
+  box.innerHTML = list.map(t => `
+    <div class="txn-row">
+      <div class="txn-type-badge ${t.type}">${t.type==='in'?'IN':'OUT'}</div>
+      <div class="txn-info">
+        <div class="txn-name">${esc(t.fromTo||'—')}</div>
+        <div class="txn-meta">${esc(t.category)}${t.note?` · ${esc(t.note)}`:''}</div>
+      </div>
+      <div class="txn-right">
+        <span class="txn-date-badge">${fmtD(t.date)}</span>
+        <span class="txn-amt ${t.type}">${t.type==='in'?'+':'-'}${fmt(t.amount)}</span>
+        <button class="btn-del" onclick="del('${t._id}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+/* ── SET TYPE ── */
+function setType(type) {
+  txnType = type;
+  document.getElementById('btnIN').classList.toggle('active',  type==='in');
+  document.getElementById('btnOUT').classList.toggle('active', type==='out');
+  document.getElementById('fromToLabel').textContent = type==='in' ? 'From (Who paid you?)' : 'To (Who did you pay?)';
+  document.getElementById('addBtnText').textContent  = type==='in' ? '+ Add Money IN' : '+ Add Money OUT';
+  document.getElementById('addBtn').className        = type==='in' ? 'btn-add-in' : 'btn-add-out';
+
+  // Update category options
+  const sel  = document.getElementById('category');
+  const cats = type==='in' ? IN_CATEGORIES : OUT_CATEGORIES;
+  const emojis = {
+    Sales:'🛒',Service:'🔧',Commission:'💰','Rent Received':'🏠',Investment:'📈','Other IN':'📌',
+    Stock:'📦',Salary:'👷',Rent:'🏠',Transport:'🚌',Utilities:'💡',Maintenance:'🔨','Other OUT':'📌'
+  };
+  sel.innerHTML = cats.map(c=>`<option value="${c}">${emojis[c]||'📌'} ${c}</option>`).join('');
+}
+
+/* ── ADD TRANSACTION ── */
+async function addTransaction() {
+  const amount  = parseFloat(document.getElementById('amount').value);
+  const fromTo  = document.getElementById('fromTo').value.trim();
+  const cat     = document.getElementById('category').value;
+  const note    = document.getElementById('note').value.trim();
+  const date    = document.getElementById('date').value || new Date().toISOString().split('T')[0];
+  if (!amount || amount <= 0) return showToast('Enter a valid amount!', true);
+  if (!fromTo) return showToast('Enter ' + (txnType==='in'?'who paid you':'who you paid') + '!', true);
+  const t = { type:txnType, amount, fromTo, category:cat, note, date };
+  const saved = await BusinessData.add(t);
+  if (!saved) return showToast('Failed to save. Check connection!', true);
+  await render();
+  document.getElementById('amount').value = '';
+  document.getElementById('fromTo').value = '';
+  document.getElementById('note').value   = '';
+  showToast((txnType==='in'?'💚 IN: +':'🔴 OUT: -')+fmt(amount)+' from '+fromTo);
+}
+
+async function del(id) { await BusinessData.remove(id); await render(); showToast('Deleted!'); }
+
+/* ── INSIGHTS ── */
+function renderInsights() {
+  const box = document.getElementById('insBox');
+  if (!transactions.length) {
+    box.innerHTML=`<div class="ins-row"><span class="ins-ico">💡</span><span>Add your first transaction to see insights!</span></div>`;
+    return;
+  }
+  const totalIn  = transactions.filter(t=>t.type==='in').reduce((s,t)=>s+(+t.amount||0),0);
+  const totalOut = transactions.filter(t=>t.type==='out').reduce((s,t)=>s+(+t.amount||0),0);
+  const profit   = totalIn - totalOut;
+
+  const inCatMap  = {};
+  transactions.filter(t=>t.type==='in').forEach(t=>{ inCatMap[t.category]=(inCatMap[t.category]||0)+(+t.amount||0); });
+  const outCatMap = {};
+  transactions.filter(t=>t.type==='out').forEach(t=>{ outCatMap[t.category]=(outCatMap[t.category]||0)+(+t.amount||0); });
+
+  const topIn  = Object.entries(inCatMap).sort((a,b)=>b[1]-a[1])[0];
+  const topOut = Object.entries(outCatMap).sort((a,b)=>b[1]-a[1])[0];
+
+  const rows = [
+    { i:'💰', t:`Net Profit: <b style="color:${profit>=0?'var(--in-color)':'var(--red)'}">${fmt(Math.abs(profit))}</b> ${profit>=0?'✅ profit':'🔴 loss'}` },
+    topIn  ? { i:'💚', t:`Best IN: <b style="color:var(--in-color)">${esc(topIn[0])}</b> — ${fmt(topIn[1])}` } : null,
+    topOut ? { i:'🔴', t:`Most OUT: <b style="color:var(--red)">${esc(topOut[0])}</b> — ${fmt(topOut[1])}` } : null,
+  ].filter(Boolean);
+  box.innerHTML = rows.map((r,i)=>`<div class="ins-row" ${i===0?'style="border-top:none;padding-top:0;"':''}><span class="ins-ico">${r.i}</span><span>${r.t}</span></div>`).join('');
+}
+
+/* ── PARTNERS ── */
+function setPartnerCount(n) {
+  partnerCount = n;
+  [1,2,3].forEach(i => document.getElementById('pc'+i).classList.toggle('active', i===n));
+  document.getElementById('splitTypeRow').style.display = n>1 ? 'block' : 'none';
+  renderPartnerInputs();
+}
+
+function setSplitType(t) {
+  splitType = t;
+  document.getElementById('splitEqual').classList.toggle('active',  t==='equal');
+  document.getElementById('splitCustom').classList.toggle('active', t==='custom');
+  renderPartnerInputs();
+}
+
+function renderPartnerInputs() {
+  const box = document.getElementById('partnerInputs');
+  if (partnerCount === 1) { box.innerHTML = ''; return; }
+  const equalPct = Math.round(100/partnerCount);
+  box.innerHTML = Array.from({length:partnerCount},(_,i)=>`
+    <div class="partner-row-inp">
+      <span class="partner-lbl">👤</span>
+      <input class="partner-inp" id="pname${i}" placeholder="Partner ${i+1} name" value="${getPartnerName(i)}"/>
+      ${splitType==='custom'?`<input class="pct-inp" type="number" id="ppct${i}" placeholder="%" value="${getPartnerPct(i)||equalPct}" min="1" max="100"/>`:
+        `<span style="font-size:12px;color:var(--tmid);padding:0 8px;">${equalPct}%</span>`}
+    </div>`).join('');
+}
+
+let savedPartners = [];
+function getPartnerName(i) { return savedPartners[i]?.name || ''; }
+function getPartnerPct(i)  { return savedPartners[i]?.pct  || ''; }
+
+function savePartners() {
+  if (partnerCount === 1) { savedPartners=[]; renderPartnerResults(); showToast('Single owner — no split needed!'); return; }
+  const names=[], pcts=[];
+  const eqPct = Math.round(100/partnerCount);
+  for (let i=0;i<partnerCount;i++) {
+    const n = document.getElementById('pname'+i)?.value.trim() || ('Partner '+(i+1));
+    const p = splitType==='custom' ? (parseFloat(document.getElementById('ppct'+i)?.value)||eqPct) : eqPct;
+    names.push(n); pcts.push(p);
+  }
+  savedPartners = names.map((n,i)=>({name:n,pct:pcts[i]}));
+  localStorage.setItem('bt_partners', JSON.stringify({count:partnerCount,type:splitType,partners:savedPartners}));
+  renderPartnerResults();
+  showToast('✅ Partners saved!');
+}
+
+function renderPartnerResults() {
+  const box = document.getElementById('partnerResults');
+  const totalIn  = transactions.filter(t=>t.type==='in').reduce((s,t)=>s+(+t.amount||0),0);
+  const totalOut = transactions.filter(t=>t.type==='out').reduce((s,t)=>s+(+t.amount||0),0);
+  const profit   = Math.max(0, totalIn - totalOut);
+  if (!savedPartners.length || partnerCount===1) {
+    box.innerHTML = profit > 0 ? `<div style="text-align:center;font-size:13px;color:var(--tmid);padding:8px 0;">Single owner — full profit: <b style="color:var(--gold-light)">${fmt(profit)}</b></div>` : '';
+    return;
+  }
+  const total = savedPartners.reduce((s,p)=>s+p.pct,0)||100;
+  box.innerHTML = savedPartners.map(p=>`
+    <div class="partner-result-row">
+      <div><div class="p-name">${esc(p.name)}</div><div class="p-pct">${p.pct}% share</div></div>
+      <div class="p-share">${fmt(Math.round(profit*p.pct/total))}</div>
+    </div>`).join('');
+}
+
+function loadPartners() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('bt_partners')||'{}');
+    if (saved.count) {
+      partnerCount  = saved.count;
+      splitType     = saved.type  || 'equal';
+      savedPartners = saved.partners || [];
+      [1,2,3].forEach(i=>document.getElementById('pc'+i)?.classList.toggle('active',i===partnerCount));
+      document.getElementById('splitTypeRow').style.display = partnerCount>1?'block':'none';
+      document.getElementById('splitEqual')?.classList.toggle('active',  splitType==='equal');
+      document.getElementById('splitCustom')?.classList.toggle('active', splitType==='custom');
+      renderPartnerInputs();
+    }
+  } catch(e){}
+}
+
+/* ── HELPERS ── */
+function toggleProfile(e) {
+  e.stopPropagation();
+  document.getElementById('profilePopup').classList.toggle('open');
+}
+document.addEventListener('click', function() {
+  const p = document.getElementById('profilePopup');
+  if (p) p.classList.remove('open');
+});
+function toggleMenu()  { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
+function logout()      { localStorage.removeItem('token'); window.location.href='login.html'; }
+function showToast(msg,err) { const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(err?' err':'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800); }
+
+/* ── BOOT ── */
+init();
+</script>
+
+<script src="onboarding.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<script src="business-help-tour.js"></script>
+</body>
+</html>

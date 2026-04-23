@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="theme.js"></script>
+  <script src="business-userdata.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Business Charts – BudgetTracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#080f08; --bg2:#0c140c; --bg3:#111a11; --card:#141f14; --card2:#1a2a1a;
+  --border:#1f2f1f; --border2:#2a402a; --green-dark:#1a3d1a; --green:#2d6a2d;
+  --green-bright:#52b052; --gold:#c9a84c; --gold-light:#e8c86a; --gold-bright:#f5d87a;
+  --gold-dim:rgba(201,168,76,0.12); --gold-border:rgba(201,168,76,0.25);
+  --red:#e05555; --red-dim:rgba(224,85,85,0.12);
+  --in-color:#52b052; --in-dim:rgba(82,176,82,0.12); --in-border:rgba(82,176,82,0.3);
+  --out-color:#e05555; --out-dim:rgba(224,85,85,0.12); --out-border:rgba(224,85,85,0.3);
+  --text:#e8f0e0; --tmid:#7a9870; --tdim:#3a5030; --label:#c9a84c;
+  --sidebar-w:235px; --font-d:'DM Serif Display',serif; --font-b:'DM Sans',sans-serif;
+}
+body { font-family:var(--font-b); background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar { position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;transition:transform .3s; }
+.sidebar-logo { padding:24px 20px 20px;border-bottom:1px solid var(--border);font-family:var(--font-d);font-size:20px;color:var(--text);display:flex;align-items:center;gap:9px;text-decoration:none; }
+.logo-dot { width:9px;height:9px;background:var(--gold);border-radius:50%;flex-shrink:0;box-shadow:0 0 10px rgba(201,168,76,0.6); }
+.nav-section { flex:1;padding:16px 10px;overflow-y:auto; }
+.nav-label { font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--tdim);padding:0 10px;margin:16px 0 6px; }
+.nav-link { display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;text-decoration:none;font-size:13.5px;font-weight:500;color:var(--tmid);transition:background .15s,color .15s;margin-bottom:2px; }
+.nav-link:hover  { background:var(--bg3);color:var(--text); }
+.nav-link.active { background:var(--gold-dim);color:var(--gold-light);border:1px solid var(--gold-border); }
+.nav-link .icon  { font-size:15px;width:20px;text-align:center;flex-shrink:0; }
+.sidebar-bottom { padding:14px 10px;border-top:1px solid var(--border); }
+.profile-row { display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;transition:background .15s; }
+.profile-row:hover { background:var(--bg3); }
+.avatar { width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-bright));color:#0c0c00;font-family:var(--font-d);font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.profile-name  { font-size:13px;font-weight:500;color:var(--text); }
+.profile-email { font-size:11px;color:#7a9870;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:135px; }
+
+/* ── PROFILE POPUP ── */
+.profile-popup { position:fixed;bottom:75px;left:10px;width:220px;background:var(--card2);border:1px solid var(--gold-border);border-radius:14px;padding:16px;display:none;z-index:999;box-shadow:0 8px 32px rgba(0,0,0,0.5);animation:popIn .2s cubic-bezier(.175,.885,.32,1.275); }
+@keyframes popIn { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;} }
+.profile-popup.open { display:block; }
+.popup-name  { font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px; }
+.popup-email { font-size:11px;color:#7a9870;margin-bottom:12px;word-break:break-all; }
+.popup-divider { height:1px;background:var(--border);margin-bottom:12px; }
+.popup-btn { display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:9px;color:var(--gold-light);font-size:12px;font-weight:600;cursor:pointer;transition:background .15s;text-decoration:none;margin-bottom:6px; }
+.popup-btn:hover { background:rgba(201,168,76,0.25); }
+.popup-btn-danger { display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:var(--red-dim);border:1px solid rgba(224,85,85,0.2);border-radius:9px;color:#f09090;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s;margin-top:2px; }
+.popup-btn-danger:hover { background:rgba(224,85,85,0.22); }
+
+/* ── MAIN ── */
+.main { margin-left:var(--sidebar-w);padding:32px 32px 80px;min-height:100vh; }
+.topbar { display:flex;justify-content:space-between;align-items:center;margin-bottom:28px; }
+.topbar-title { font-family:var(--font-d);font-size:28px;color:var(--text); }
+.topbar-date  { font-size:12px;color:#7a9870;margin-top:3px; }
+.back-btn { display:flex;align-items:center;gap:6px;padding:9px 18px;background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:50px;color:var(--gold-light);font-size:13px;font-weight:500;text-decoration:none;transition:background .15s; }
+.back-btn:hover { background:rgba(201,168,76,0.22); }
+
+/* ── SECTION TITLE ── */
+.section-title { font-family:var(--font-d);font-size:20px;color:var(--gold-light);margin:32px 0 16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px; }
+
+/* ── CHART CARDS ── */
+.chart-card { background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px; }
+.chart-card-title { font-size:11px;font-weight:600;color:var(--label);text-transform:uppercase;letter-spacing:.07em;margin-bottom:18px; }
+.chart-wrap-xl   { position:relative;height:320px; }
+.chart-wrap-tall { position:relative;height:260px; }
+.chart-wrap-md   { position:relative;height:220px; }
+.no-data { text-align:center;color:var(--tdim);font-size:13px;padding:50px 0; }
+
+/* ── 2 COL GRID ── */
+.chart-grid-2 { display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px; }
+.chart-grid-2 .chart-card { margin-bottom:0; }
+
+/* ── CATEGORY BARS ── */
+.cat-bar-row { display:flex;align-items:center;gap:12px;margin-bottom:12px; }
+.cat-bar-row:last-child { margin-bottom:0; }
+.cat-label { font-size:13px;color:var(--text);width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.cat-track { flex:1;height:8px;background:var(--border2);border-radius:4px;overflow:hidden; }
+.cat-fill  { height:100%;border-radius:4px;transition:width .7s ease; }
+.cat-val   { font-size:12px;font-weight:600;width:80px;text-align:right;flex-shrink:0; }
+
+/* ── STATS MINI ROW ── */
+.mini-stats { display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:32px; }
+.mini-stat { background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;text-align:center; }
+.mini-stat-label { font-size:11px;color:var(--tmid);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px; }
+.mini-stat-val   { font-family:var(--font-d);font-size:22px; }
+.mini-stat-sub   { font-size:11px;color:var(--tdim);margin-top:4px; }
+
+/* ── TOAST ── */
+.toast { position:fixed;bottom:22px;right:24px;background:var(--gold);color:#0c0c00;padding:11px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:999;transform:translateY(50px);opacity:0;transition:transform .35s cubic-bezier(.175,.885,.32,1.275),opacity .35s;pointer-events:none; }
+.toast.show { transform:translateY(0);opacity:1; }
+
+/* ── MOBILE ── */
+.menu-btn { display:none;position:fixed;top:14px;left:14px;z-index:200;width:38px;height:38px;background:var(--green-dark);border:1px solid var(--gold-border);border-radius:9px;align-items:center;justify-content:center;color:var(--gold-light);font-size:18px;cursor:pointer; }
+.sidebar-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:90; }
+
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border2);border-radius:3px; }
+
+@media(max-width:1100px) { .mini-stats{grid-template-columns:1fr 1fr;} }
+@media(max-width:860px)  { .chart-grid-2{grid-template-columns:1fr;} }
+@media(max-width:700px)  {
+  .sidebar{transform:translateX(-100%);} .sidebar.open{transform:translateX(0);}
+  .sidebar-overlay.open{display:block;} .main{margin-left:0;padding:72px 16px 60px;}
+  .menu-btn{display:flex;} .topbar{flex-direction:column;align-items:flex-start;gap:12px;}
+  .mini-stats{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" onclick="toggleMenu()">☰</button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleMenu()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <a class="sidebar-logo" href="welcome.html"><span class="logo-dot"></span>BudgetTracker</a>
+  <nav class="nav-section">
+    <div class="nav-label">💼 Business</div>
+    <a href="business.html"          class="nav-link "><span class="icon">💼</span> Business Dashboard</a>
+    <a href="business-report.html"   class="nav-link"><span class="icon">📊</span> Monthly Summary</a>
+    <a href="business-chart.html"    class="nav-link active"><span class="icon">📈</span> Charts</a>
+    <a href="business-partners.html" class="nav-link"><span class="icon">🤝</span> Partners</a>
+    <div class="nav-label">Account</div>
+    <a href="business-setting.html"          class="nav-link"><span class="icon">⚙️</span> Settings</a>
+    <a href="business-profile.html"  class="nav-link"><span class="icon">👤</span> Profile</a>
+
+<a class="nav-link" onclick="HelpTour.start()" style="cursor:pointer;">
+  <span class="icon">🩵</span> Help Tour
+</a></nav>
+  <div class="sidebar-bottom">
+    <div class="profile-row" onclick="toggleProfile(event)" title="Click to open menu">
+      <div class="avatar" id="avatarLetter">U</div>
+      <div>
+        <div class="profile-name"  id="profileName">User</div>
+        <div class="profile-email" id="profileEmail">—</div>
+      </div>
+      <span style="margin-left:auto;font-size:11px;color:var(--tdim);">▲</span>
+    </div>
+  </div>
+</aside>
+
+<!-- PROFILE POPUP -->
+<div class="profile-popup" id="profilePopup">
+  <div class="popup-name"  id="popupName">User</div>
+  <div class="popup-email" id="popupEmail">—</div>
+  <div class="popup-divider"></div>
+  <a class="popup-btn" href="business-profile.html">👤 View Profile</a>
+  <a class="popup-btn" href="business-setting.html">⚙️ Settings</a>
+  <button class="popup-btn-danger" onclick="logout()">🚪 Sign Out</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">📈 Business Charts</div>
+      <div class="topbar-date" id="topDate"></div>
+    </div>
+    <a href="business.html" class="back-btn">← Dashboard</a>
+  </div>
+
+  <!-- MINI STATS -->
+  <div class="mini-stats">
+    <div class="mini-stat">
+      <div class="mini-stat-label">Total Money IN</div>
+      <div class="mini-stat-val" id="ms-in" style="color:var(--in-color);">₹0</div>
+      <div class="mini-stat-sub" id="ms-in-sub">all time</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-stat-label">Total Money OUT</div>
+      <div class="mini-stat-val" id="ms-out" style="color:var(--out-color);">₹0</div>
+      <div class="mini-stat-sub" id="ms-out-sub">all time</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-stat-label">Net Profit</div>
+      <div class="mini-stat-val" id="ms-profit">₹0</div>
+      <div class="mini-stat-sub" id="ms-profit-sub">all time</div>
+    </div>
+  </div>
+
+  <!-- ① LAST 7 DAYS IN VS OUT -->
+  <div class="section-title">📊 Last 7 Days — IN vs OUT</div>
+  <div class="chart-card">
+    <div class="chart-card-title">Daily comparison for the past 7 days</div>
+    <div class="chart-wrap-xl">
+      <canvas id="weekBar"></canvas>
+      <div id="noWeekBar" class="no-data" style="display:none;">No data for last 7 days</div>
+    </div>
+  </div>
+
+  <!-- ② MONTHLY TREND (last 6 months) -->
+  <div class="section-title">📅 Monthly Trend — Last 6 Months</div>
+  <div class="chart-card">
+    <div class="chart-card-title">Monthly IN vs OUT vs Profit — last 6 months</div>
+    <div class="chart-wrap-xl">
+      <canvas id="monthLine"></canvas>
+      <div id="noMonthLine" class="no-data" style="display:none;">Not enough data yet</div>
+    </div>
+  </div>
+
+  <!-- ③ IN + OUT PIE CHARTS -->
+  <div class="section-title">🥧 Category Breakdown</div>
+  <div class="chart-grid-2">
+    <div class="chart-card">
+      <div class="chart-card-title">💚 Income — By Category</div>
+      <div class="chart-wrap-md">
+        <canvas id="inPie"></canvas>
+        <div id="noInPie" class="no-data" style="display:none;">No income data yet</div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">🔴 Expenses — By Category</div>
+      <div class="chart-wrap-md">
+        <canvas id="outPie"></canvas>
+        <div id="noOutPie" class="no-data" style="display:none;">No expense data yet</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ TOP CATEGORIES BARS -->
+  <div class="section-title">🏆 Top Categories</div>
+  <div class="chart-grid-2">
+    <div class="chart-card">
+      <div class="chart-card-title">💚 Top Income Sources</div>
+      <div id="inCatBars"><div class="no-data">No income data yet</div></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">🔴 Top Expense Categories</div>
+      <div id="outCatBars"><div class="no-data">No expense data yet</div></div>
+    </div>
+  </div>
+
+  <!-- ⑤ IN vs OUT DOUGHNUT (overall) -->
+  <div class="section-title">⚖️ Overall IN vs OUT</div>
+  <div class="chart-card">
+    <div class="chart-card-title">Overall balance — total IN vs total OUT</div>
+    <div style="max-width:360px;margin:0 auto;">
+      <div class="chart-wrap-tall">
+        <canvas id="overallDoughnut"></canvas>
+        <div id="noOverall" class="no-data" style="display:none;">No data yet</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+if (!localStorage.getItem('token')) window.location.href = 'login.html';
+
+let transactions = [];
+let weekBarObj=null, monthLineObj=null, inPieObj=null, outPieObj=null, overallObj=null;
+
+const IN_COLORS  = { Sales:'#52b052',Service:'#26d4ee',Commission:'#c9a84c','Rent Received':'#7eb8ff',Investment:'#b07aff','Other IN':'#8a9bb0' };
+const OUT_COLORS = { Stock:'#e05555',Salary:'#f06292',Rent:'#e8a030',Transport:'#ff8c42',Utilities:'#f5d87a',Maintenance:'#c97bff','Other OUT':'#8a9bb0' };
+
+/* ── INIT ── */
+async function init() {
+  const name  = localStorage.getItem('userName')  || 'User';
+  const email = localStorage.getItem('userEmail') || '';
+  document.getElementById('avatarLetter').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('profileName').textContent  = name;
+  document.getElementById('profileEmail').textContent = email || '—';
+  document.getElementById('popupName').textContent    = name;
+  document.getElementById('popupEmail').textContent   = email || '—';
+  document.getElementById('topDate').textContent      = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  // Load data
+  transactions = await BusinessData.getAll();
+
+  renderAll();
+}
+
+function fmt(n) { return '₹'+Number(n).toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ── RENDER ALL ── */
+function renderAll() {
+  renderMiniStats();
+  renderWeekBar();
+  renderMonthLine();
+  renderPieCharts();
+  renderCatBars();
+  renderOverallDoughnut();
+}
+
+/* ── MINI STATS ── */
+function renderMiniStats() {
+  const totalIn  = transactions.filter(t=>t.type==='in').reduce((s,t)=>s+(+t.amount||0),0);
+  const totalOut = transactions.filter(t=>t.type==='out').reduce((s,t)=>s+(+t.amount||0),0);
+  const profit   = totalIn - totalOut;
+  document.getElementById('ms-in').textContent         = fmt(totalIn);
+  document.getElementById('ms-in-sub').textContent     = transactions.filter(t=>t.type==='in').length+' transactions';
+  document.getElementById('ms-out').textContent        = fmt(totalOut);
+  document.getElementById('ms-out-sub').textContent    = transactions.filter(t=>t.type==='out').length+' transactions';
+  document.getElementById('ms-profit').textContent     = fmt(Math.abs(profit));
+  document.getElementById('ms-profit').style.color     = profit>=0?'var(--in-color)':'var(--red)';
+  document.getElementById('ms-profit-sub').textContent = profit>=0?'✅ profit':'🔴 loss';
+}
+
+/* ── WEEK BAR ── */
+function renderWeekBar() {
+  const days=[], ins=[], outs=[];
+  for (let i=6;i>=0;i--) {
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const ds = d.toISOString().split('T')[0];
+    days.push(d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric'}));
+    ins.push(transactions.filter(t=>t.type==='in'  && t.date===ds).reduce((s,t)=>s+(+t.amount||0),0));
+    outs.push(transactions.filter(t=>t.type==='out' && t.date===ds).reduce((s,t)=>s+(+t.amount||0),0));
+  }
+  const hasData = ins.some(v=>v>0)||outs.some(v=>v>0);
+  document.getElementById('noWeekBar').style.display   = hasData?'none':'block';
+  document.getElementById('weekBar').style.display     = hasData?'block':'none';
+  if (weekBarObj) { weekBarObj.destroy(); weekBarObj=null; }
+  if (hasData) weekBarObj = new Chart(document.getElementById('weekBar'),{
+    type:'bar',
+    data:{ labels:days, datasets:[
+      {label:'Money IN', data:ins, backgroundColor:'rgba(82,176,82,0.5)', borderColor:'#52b052', borderWidth:2, borderRadius:6},
+      {label:'Money OUT',data:outs,backgroundColor:'rgba(224,85,85,0.5)', borderColor:'#e05555', borderWidth:2, borderRadius:6}
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#7a9870'}},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#7a9870',callback:v=>'₹'+v}}},
+      plugins:{legend:{labels:{color:'#7a9870',font:{size:12}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.raw)}}}
+    }
+  });
+}
+
+/* ── MONTHLY LINE ── */
+function renderMonthLine() {
+  const months=[], ins=[], outs=[], profits=[];
+  for (let i=5;i>=0;i--) {
+    const d = new Date(); d.setDate(1); d.setMonth(d.getMonth()-i);
+    const m=d.getMonth(), y=d.getFullYear();
+    months.push(d.toLocaleDateString('en-IN',{month:'short',year:'2-digit'}));
+    const mTxns = transactions.filter(t=>{ if(!t.date)return false; const dd=new Date(t.date+'T00:00:00'); return dd.getMonth()===m&&dd.getFullYear()===y; });
+    const mIn  = mTxns.filter(t=>t.type==='in').reduce((s,t)=>s+(+t.amount||0),0);
+    const mOut = mTxns.filter(t=>t.type==='out').reduce((s,t)=>s+(+t.amount||0),0);
+    ins.push(mIn); outs.push(mOut); profits.push(mIn-mOut);
+  }
+  const hasData = ins.some(v=>v>0)||outs.some(v=>v>0);
+  document.getElementById('noMonthLine').style.display  = hasData?'none':'block';
+  document.getElementById('monthLine').style.display    = hasData?'block':'none';
+  if (monthLineObj) { monthLineObj.destroy(); monthLineObj=null; }
+  if (hasData) monthLineObj = new Chart(document.getElementById('monthLine'),{
+    type:'line',
+    data:{ labels:months, datasets:[
+      {label:'Money IN', data:ins, borderColor:'#52b052', backgroundColor:'rgba(82,176,82,0.1)', borderWidth:2.5, pointRadius:5, pointBackgroundColor:'#52b052', tension:.4, fill:true},
+      {label:'Money OUT',data:outs,borderColor:'#e05555', backgroundColor:'rgba(224,85,85,0.1)', borderWidth:2.5, pointRadius:5, pointBackgroundColor:'#e05555', tension:.4, fill:true},
+      {label:'Profit',   data:profits,borderColor:'#c9a84c',backgroundColor:'rgba(201,168,76,0.08)',borderWidth:2, pointRadius:4, pointBackgroundColor:'#c9a84c', tension:.4, fill:false, borderDash:[5,3]}
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#7a9870'}},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#7a9870',callback:v=>'₹'+v}}},
+      plugins:{legend:{labels:{color:'#7a9870',font:{size:12}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.raw)}}}
+    }
+  });
+}
+
+/* ── PIE CHARTS ── */
+function renderPieCharts() {
+  // IN
+  const inMap={};
+  transactions.filter(t=>t.type==='in').forEach(t=>{ inMap[t.category]=(inMap[t.category]||0)+(+t.amount||0); });
+  const inL=Object.keys(inMap), inD=Object.values(inMap);
+  const inEl=document.getElementById('inPie');
+  document.getElementById('noInPie').style.display=inL.length?'none':'block';
+  inEl.style.display=inL.length?'block':'none';
+  if (inPieObj){inPieObj.destroy();inPieObj=null;}
+  if (inL.length) inPieObj=new Chart(inEl,{type:'doughnut',data:{labels:inL,datasets:[{data:inD,backgroundColor:inL.map(l=>IN_COLORS[l]||'#888'),borderWidth:2,borderColor:'#141f14',hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{position:'bottom',labels:{color:'#7a9870',font:{size:10},padding:10}},tooltip:{callbacks:{label:c=>' '+c.label+': '+fmt(c.raw)}}}}});
+
+  // OUT
+  const outMap={};
+  transactions.filter(t=>t.type==='out').forEach(t=>{ outMap[t.category]=(outMap[t.category]||0)+(+t.amount||0); });
+  const outL=Object.keys(outMap), outD=Object.values(outMap);
+  const outEl=document.getElementById('outPie');
+  document.getElementById('noOutPie').style.display=outL.length?'none':'block';
+  outEl.style.display=outL.length?'block':'none';
+  if (outPieObj){outPieObj.destroy();outPieObj=null;}
+  if (outL.length) outPieObj=new Chart(outEl,{type:'doughnut',data:{labels:outL,datasets:[{data:outD,backgroundColor:outL.map(l=>OUT_COLORS[l]||'#888'),borderWidth:2,borderColor:'#141f14',hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{position:'bottom',labels:{color:'#7a9870',font:{size:10},padding:10}},tooltip:{callbacks:{label:c=>' '+c.label+': '+fmt(c.raw)}}}}});
+}
+
+/* ── CATEGORY BARS ── */
+function renderCatBars() {
+  const inMap={}, outMap={};
+  transactions.filter(t=>t.type==='in').forEach(t=>{  inMap[t.category]=(inMap[t.category]||0)+(+t.amount||0);});
+  transactions.filter(t=>t.type==='out').forEach(t=>{ outMap[t.category]=(outMap[t.category]||0)+(+t.amount||0);});
+
+  const inSorted  = Object.entries(inMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const outSorted = Object.entries(outMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const inMax  = inSorted[0]?.[1]  || 1;
+  const outMax = outSorted[0]?.[1] || 1;
+
+  const inBox  = document.getElementById('inCatBars');
+  const outBox = document.getElementById('outCatBars');
+
+  inBox.innerHTML  = inSorted.length  ? inSorted.map(([cat,val])=>`
+    <div class="cat-bar-row">
+      <div class="cat-label">${esc(cat)}</div>
+      <div class="cat-track"><div class="cat-fill" style="width:${Math.round(val/inMax*100)}%;background:${IN_COLORS[cat]||'#52b052'};"></div></div>
+      <div class="cat-val" style="color:var(--in-color);">${fmt(val)}</div>
+    </div>`).join('') : '<div class="no-data">No income data yet</div>';
+
+  outBox.innerHTML = outSorted.length ? outSorted.map(([cat,val])=>`
+    <div class="cat-bar-row">
+      <div class="cat-label">${esc(cat)}</div>
+      <div class="cat-track"><div class="cat-fill" style="width:${Math.round(val/outMax*100)}%;background:${OUT_COLORS[cat]||'#e05555'};"></div></div>
+      <div class="cat-val" style="color:var(--out-color);">${fmt(val)}</div>
+    </div>`).join('') : '<div class="no-data">No expense data yet</div>';
+}
+
+/* ── OVERALL DOUGHNUT ── */
+function renderOverallDoughnut() {
+  const totalIn  = transactions.filter(t=>t.type==='in').reduce((s,t)=>s+(+t.amount||0),0);
+  const totalOut = transactions.filter(t=>t.type==='out').reduce((s,t)=>s+(+t.amount||0),0);
+  const hasData  = totalIn>0 || totalOut>0;
+  document.getElementById('noOverall').style.display          = hasData?'none':'block';
+  document.getElementById('overallDoughnut').style.display    = hasData?'block':'none';
+  if (overallObj){overallObj.destroy();overallObj=null;}
+  if (hasData) overallObj=new Chart(document.getElementById('overallDoughnut'),{
+    type:'doughnut',
+    data:{labels:['Money IN','Money OUT'],datasets:[{data:[totalIn,totalOut],backgroundColor:['rgba(82,176,82,0.7)','rgba(224,85,85,0.7)'],borderColor:['#52b052','#e05555'],borderWidth:2,hoverOffset:10}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:'#7a9870',font:{size:13},padding:16}},tooltip:{callbacks:{label:c=>' '+c.label+': '+fmt(c.raw)}}}}
+  });
+}
+
+/* ── HELPERS ── */
+function toggleProfile(e) {
+  e.stopPropagation();
+  document.getElementById('profilePopup').classList.toggle('open');
+}
+document.addEventListener('click',function(){
+  const p=document.getElementById('profilePopup');
+  if(p) p.classList.remove('open');
+});
+function toggleMenu(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
+function logout(){ localStorage.removeItem('token'); window.location.href='login.html'; }
+function showToast(msg,err){ const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(err?' err':'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800); }
+
+/* ── BOOT ── */
+init();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<script src="business-help-tour.js"></script>
+</body>
+</html>

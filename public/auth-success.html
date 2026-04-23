@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head><title>Logging in...</title></head>
+<body>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const token  = params.get('token');
+  const name   = params.get('name');
+  const email  = params.get('email');
+  if (token) {
+    localStorage.setItem('token', token);
+localStorage.setItem('userName', name);
+localStorage.setItem('userEmail', email);
+
+// ✅ Check if this user has seen onboarding before
+const emailKey = email.toLowerCase().replace(/[^a-zA-Z0-9]/g, '_') + '_bt_onboarded';
+const alreadyOnboarded = localStorage.getItem(emailKey);
+
+if (!alreadyOnboarded) {
+  // New user OR deleted+re-registered → clear flag and show popup
+  localStorage.removeItem(emailKey);
+  sessionStorage.setItem('show_onboarding', '1');
+  console.log('SET show_onboarding in auth-success');
+}
+
+window.location.href = 'index.html';
+  } else {
+    window.location.href = 'login.html';
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BudgetTracker – Manage Your Money Smartly</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:          #080f08;
+    --bg2:         #0c140c;
+    --bg3:         #111a11;
+    --card:        #141f14;
+    --card2:       #1a2a1a;
+    --border:      #1f2f1f;
+    --border2:     #2a402a;
+    --green-dark:  #1a3d1a;
+    --green:       #2d6a2d;
+    --green-mid:   #3a8c3a;
+    --green-bright:#52b052;
+    --gold:        #c9a84c;
+    --gold-light:  #e8c86a;
+    --gold-bright: #f5d87a;
+    --gold-dim:    rgba(201,168,76,0.12);
+    --gold-border: rgba(201,168,76,0.25);
+    --red:         #e05555;
+    --text:        #e8f0e0;
+    --tmid:        #7a9870;
+    --tdim:        #3a5030;
+    --font-d:      'DM Serif Display', serif;
+    --font-b:      'DM Sans', sans-serif;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font-b); background: var(--bg); color: var(--text); overflow-x: hidden; }
+
+  /* ── NAVBAR ── */
+  .navbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 60px;
+    background: rgba(8,15,8,0.92); backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    transition: box-shadow .3s;
+  }
+  .navbar.scrolled { box-shadow: 0 2px 30px rgba(0,0,0,0.4); }
+  .logo {
+    font-family: var(--font-d); font-size: 22px; color: var(--text);
+    display: flex; align-items: center; gap: 9px; text-decoration: none;
+  }
+  .logo-dot { width: 9px; height: 9px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 10px rgba(201,168,76,0.6); }
+  .nav-links { display: flex; align-items: center; gap: 6px; }
+  .nav-links a {
+    padding: 8px 16px; text-decoration: none; color: var(--tmid);
+    font-size: 14px; font-weight: 500; border-radius: 8px; transition: color .2s, background .2s;
+  }
+  .nav-links a:hover { color: var(--text); background: var(--bg3); }
+  .btn-nav {
+    padding: 9px 22px; background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: #0c0c00 !important; border-radius: 50px; font-weight: 600 !important;
+    transition: opacity .2s, transform .15s !important;
+  }
+  .btn-nav:hover { opacity: .88 !important; transform: translateY(-1px); background: var(--bg3) !important; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh; display: flex; align-items: center;
+    padding: 130px 60px 80px; position: relative; overflow: hidden;
+  }
+  .hero-glow1 { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(45,106,45,0.15) 0%, transparent 70%); top: -100px; right: -100px; pointer-events: none; }
+  .hero-glow2 { position: absolute; width: 400px; height: 400px; background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%); bottom: 0; left: -100px; pointer-events: none; }
+
+  .hero-content { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 1200px; margin: 0 auto; gap: 60px; }
+  .hero-text { flex: 1; max-width: 560px; }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--gold-dim); border: 1px solid var(--gold-border);
+    color: var(--gold-light); font-size: 12px; font-weight: 600;
+    padding: 6px 14px; border-radius: 50px; margin-bottom: 26px;
+    letter-spacing: .05em; text-transform: uppercase;
+    opacity: 0; animation: fadeUp .6s ease forwards;
+  }
+  .badge-dot { width: 6px; height: 6px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 6px rgba(201,168,76,0.6); }
+
+  .hero-text h1 {
+    font-family: var(--font-d); font-size: 58px; line-height: 1.1;
+    color: var(--text); margin-bottom: 22px;
+    opacity: 0; animation: fadeUp .6s ease .15s forwards;
+  }
+  .hero-text h1 em { color: var(--gold-light); font-style: italic; }
+
+  .hero-text p {
+    font-size: 17px; line-height: 1.7; color: var(--tmid);
+    margin-bottom: 38px;
+    opacity: 0; animation: fadeUp .6s ease .3s forwards;
+  }
+
+  .hero-actions {
+    display: flex; gap: 14px; flex-wrap: wrap;
+    opacity: 0; animation: fadeUp .6s ease .45s forwards;
+  }
+  .btn-hero {
+    padding: 14px 30px; border-radius: 50px; font-size: 16px; font-weight: 600;
+    cursor: pointer; border: none; text-decoration: none;
+    transition: transform .2s, box-shadow .2s, opacity .2s;
+    display: inline-block;
+  }
+  .btn-hero:hover { transform: translateY(-2px); }
+  .btn-gold  { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #0c0c00; box-shadow: 0 4px 20px rgba(201,168,76,0.3); }
+  .btn-gold:hover { box-shadow: 0 8px 30px rgba(201,168,76,0.45); }
+  .btn-outline { background: transparent; color: var(--gold-light); border: 1.5px solid var(--gold-border); }
+  .btn-outline:hover { background: var(--gold-dim); }
+
+  .hero-stats {
+    display: flex; gap: 32px; margin-top: 48px;
+    opacity: 0; animation: fadeUp .6s ease .6s forwards;
+  }
+  .hstat-num { font-family: var(--font-d); font-size: 26px; color: var(--gold-light); }
+  .hstat-label { font-size: 12px; color: var(--tdim); margin-top: 2px; }
+
+  /* dashboard card */
+  .hero-visual { flex: 1; max-width: 480px; opacity: 0; animation: fadeUp .6s ease .3s forwards; }
+  .dash-card {
+    background: var(--card); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 24px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 40px rgba(45,106,45,0.1);
+    position: relative;
+  }
+  .dash-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--green), var(--gold), var(--green));
+    border-radius: 20px 20px 0 0;
+  }
+  .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .dash-title  { font-size: 12px; color: var(--tdim); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+  .dash-period { font-size: 11px; background: var(--gold-dim); color: var(--gold-light); padding: 3px 10px; border-radius: 20px; border: 1px solid var(--gold-border); }
+  .dash-bal    { font-family: var(--font-d); font-size: 38px; color: var(--text); margin-bottom: 4px; }
+  .dash-sub    { font-size: 13px; color: var(--tdim); margin-bottom: 20px; }
+  .dash-sub span { color: var(--green-bright); font-weight: 600; }
+
+  .mini-bars { display: flex; gap: 5px; align-items: flex-end; height: 52px; margin-bottom: 20px; }
+  .mbar { flex: 1; background: var(--green-dark); border-radius: 4px 4px 0 0; position: relative; overflow: hidden; }
+  .mbar-fill { position: absolute; bottom: 0; left: 0; right: 0; background: var(--green-mid); border-radius: 4px 4px 0 0; animation: growBar .8s ease forwards; }
+  .mbar:nth-child(6) .mbar-fill { background: var(--gold); }
+  @keyframes growBar { from { height: 0; } }
+
+  .txn { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); }
+  .txn-ico { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .txn-name { font-size: 13px; font-weight: 500; }
+  .txn-date { font-size: 11px; color: var(--tdim); }
+  .txn-amt  { margin-left: auto; font-size: 13px; font-weight: 600; }
+  .inc { color: var(--green-bright); }
+  .exp { color: var(--red); }
+
+  .float-badge {
+    position: absolute; right: -16px; top: 70px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: #0c0c00; padding: 10px 14px; border-radius: 12px;
+    font-size: 12px; font-weight: 700;
+    box-shadow: 0 8px 24px rgba(201,168,76,0.4);
+    animation: floatBadge 3s ease-in-out infinite;
+  }
+  @keyframes floatBadge { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+  /* ── FEATURES ── */
+  .features { padding: 100px 60px; background: var(--bg2); }
+  .section-label { text-align: center; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; color: var(--gold); margin-bottom: 12px; }
+  .section-title { font-family: var(--font-d); font-size: 42px; text-align: center; color: var(--text); margin-bottom: 14px; }
+  .section-sub   { text-align: center; color: var(--tmid); font-size: 16px; max-width: 480px; margin: 0 auto 60px; line-height: 1.65; }
+
+  .features-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; max-width: 1100px; margin: 0 auto; }
+  .feat-card {
+    padding: 28px; border-radius: 16px;
+    background: var(--card); border: 1px solid var(--border);
+    transition: transform .2s, border-color .2s, box-shadow .2s;
+  }
+  .feat-card:hover { transform: translateY(-4px); border-color: var(--gold-border); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+  .feat-icon {
+    width: 50px; height: 50px; border-radius: 13px;
+    background: var(--gold-dim); border: 1px solid var(--gold-border);
+    display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 18px;
+  }
+  .feat-card h3 { font-family: var(--font-d); font-size: 19px; color: var(--text); margin-bottom: 10px; }
+  .feat-card p  { font-size: 14px; color: var(--tmid); line-height: 1.65; }
+
+  /* ── HOW IT WORKS ── */
+  .how { padding: 100px 60px; background: var(--green-dark); position: relative; overflow: hidden; }
+  .how::before { content:''; position:absolute; top:-100px; right:-100px; width:400px; height:400px; background:radial-gradient(circle,rgba(201,168,76,0.08) 0%,transparent 70%); pointer-events:none; }
+  .how .section-label { color: var(--gold); }
+  .how .section-title { color: var(--text); }
+  .how .section-sub   { color: var(--tmid); }
+
+  .steps-row { display: flex; gap: 0; max-width: 860px; margin: 0 auto; position: relative; }
+  .steps-row::before { content:''; position:absolute; top:27px; left:10%; right:10%; height:1px; background:rgba(201,168,76,0.2); }
+  .step { flex:1; text-align:center; padding:0 20px; }
+  .step-num {
+    width: 54px; height: 54px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: #0c0c00; font-family: var(--font-d); font-size: 22px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px; position: relative; z-index: 1;
+    box-shadow: 0 4px 20px rgba(201,168,76,0.35);
+  }
+  .step h3 { font-family: var(--font-d); font-size: 18px; color: var(--text); margin-bottom: 10px; }
+  .step p  { font-size: 13px; color: var(--tmid); line-height: 1.6; }
+
+  /* ── CTA ── */
+  .cta {
+    padding: 100px 60px; text-align: center;
+    background: linear-gradient(135deg, var(--bg) 0%, var(--green-dark) 100%);
+  }
+  .cta h2 { font-family: var(--font-d); font-size: 48px; color: var(--text); margin-bottom: 16px; }
+  .cta h2 em { color: var(--gold-light); font-style: italic; }
+  .cta p  { font-size: 17px; color: var(--tmid); margin-bottom: 38px; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--bg2); border-top: 1px solid var(--border);
+    padding: 32px 60px; display: flex; justify-content: space-between; align-items: center; font-size: 13px;
+  }
+  .footer-logo { font-family: var(--font-d); font-size: 18px; color: var(--text); display: flex; align-items: center; gap: 7px; }
+  .footer-logo-dot { width: 7px; height: 7px; background: var(--gold); border-radius: 50%; }
+  footer a { color: var(--tdim); text-decoration: none; margin: 0 10px; transition: color .2s; }
+  footer a:hover { color: var(--gold); }
+  footer span { color: var(--tdim); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:none; } }
+  .reveal { opacity:0; transform:translateY(28px); transition:opacity .6s ease, transform .6s ease; }
+  .reveal.visible { opacity:1; transform:none; }
+
+  @media (max-width:900px) {
+    .navbar { padding: 16px 24px; }
+    .hero { padding: 100px 24px 60px; }
+    .hero-content { flex-direction: column; }
+    .hero-text h1 { font-size: 38px; }
+    .hero-visual { max-width: 100%; }
+    .features-grid { grid-template-columns: 1fr 1fr; }
+    .steps-row { flex-direction: column; gap: 32px; }
+    .steps-row::before { display: none; }
+    .features, .how, .cta { padding: 60px 24px; }
+    footer { flex-direction: column; gap: 14px; text-align: center; }
+  }
+  @media (max-width:600px) {
+    .features-grid { grid-template-columns: 1fr; }
+    .hero-text h1 { font-size: 32px; }
+    .nav-links a:not(.btn-nav) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <a class="logo" href="#"><span class="logo-dot"></span>BudgetTracker</a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How it Works</a>
+    <a href="login.html">Login</a>
+    <a href="register.html" class="btn-nav">Sign Up Free</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-glow1"></div>
+  <div class="hero-glow2"></div>
+  <div class="hero-content">
+    <div class="hero-text">
+      <div class="hero-badge"><span class="badge-dot"></span> Personal Finance Made Simple</div>
+      <h1>Track Money.<br/><em>Build Wealth.</em></h1>
+      <p>A powerful yet simple tool to record expenses, set budgets, and achieve your financial goals — all in one place.</p>
+      <div class="hero-actions">
+        <a href="register.html" class="btn-hero btn-gold">Get Started Free</a>
+        <a href="#how" class="btn-hero btn-outline">See How It Works</a>
+      </div>
+      <div class="hero-stats">
+        <div>
+          <div class="hstat-num">10k+</div>
+          <div class="hstat-label">Active Users</div>
+        </div>
+        <div>
+          <div class="hstat-num">₹2Cr+</div>
+          <div class="hstat-label">Money Tracked</div>
+        </div>
+        <div>
+          <div class="hstat-num">4.9 ★</div>
+          <div class="hstat-label">User Rating</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="dash-card">
+        <div class="float-badge">↑ 12% this month</div>
+        <div class="dash-header">
+          <span class="dash-title">Total Balance</span>
+          <span class="dash-period">June 2025</span>
+        </div>
+        <div class="dash-bal">₹1,24,800</div>
+        <div class="dash-sub"><span>↑ ₹8,200</span> vs last month</div>
+        <div class="mini-bars">
+          <div class="mbar"><div class="mbar-fill" style="height:45%"></div></div>
+          <div class="mbar"><div class="mbar-fill" style="height:62%"></div></div>
+          <div class="mbar"><div class="mbar-fill" style="height:38%"></div></div>
+          <div class="mbar"><div class="mbar-fill" style="height:75%"></div></div>
+          <div class="mbar"><div class="mbar-fill" style="height:55%"></div></div>
+          <div class="mbar"><div class="mbar-fill" style="height:88%"></div></div>
+          <div class="mbar"><div class="mbar-fill" style="height:70%"></div></div>
+        </div>
+        <div class="txn">
+          <div class="txn-ico" style="background:rgba(82,176,82,0.15);">🛒</div>
+          <div><div class="txn-name">Groceries</div><div class="txn-date">Today</div></div>
+          <div class="txn-amt exp">−₹820</div>
+        </div>
+        <div class="txn">
+          <div class="txn-ico" style="background:rgba(201,168,76,0.15);">💼</div>
+          <div><div class="txn-name">Salary</div><div class="txn-date">Yesterday</div></div>
+          <div class="txn-amt inc">+₹55,000</div>
+        </div>
+        <div class="txn">
+          <div class="txn-ico" style="background:rgba(224,85,85,0.12);">🏠</div>
+          <div><div class="txn-name">Rent</div><div class="txn-date">Jun 1</div></div>
+          <div class="txn-amt exp">−₹12,500</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="section-label">What You Get</div>
+  <h2 class="section-title reveal">Everything You Need</h2>
+  <p class="section-sub reveal">Powerful tools to take full control of your finances — all in one place.</p>
+  <div class="features-grid">
+    <div class="feat-card reveal"><div class="feat-icon">📊</div><h3>Smart Analytics</h3><p>Visual charts show exactly where your money goes each month.</p></div>
+    <div class="feat-card reveal"><div class="feat-icon">🎯</div><h3>Budget Goals</h3><p>Set spending limits per category and get alerts before you overspend.</p></div>
+    <div class="feat-card reveal"><div class="feat-icon">💳</div><h3>Multi-Account</h3><p>Track all your accounts, cards, and wallets in one dashboard.</p></div>
+    <div class="feat-card reveal"><div class="feat-icon">🏆</div><h3>Savings Goals</h3><p>Plan for big purchases with progress tracking toward your targets.</p></div>
+    <div class="feat-card reveal"><div class="feat-icon">🔔</div><h3>Smart Alerts</h3><p>Get notified when bills are due or budgets are running low.</p></div>
+    <div class="feat-card reveal"><div class="feat-icon">🔒</div><h3>Secure & Private</h3><p>Your data is encrypted and never shared with anyone.</p></div>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="section-label">Getting Started</div>
+  <h2 class="section-title reveal">Up & Running in 3 Steps</h2>
+  <p class="section-sub reveal">No complicated setup. Start tracking in under 2 minutes.</p>
+  <div class="steps-row">
+    <div class="step reveal"><div class="step-num">1</div><h3>Create Account</h3><p>Sign up free with just your email. No credit card required.</p></div>
+    <div class="step reveal"><div class="step-num">2</div><h3>Add Transactions</h3><p>Log your income and expenses manually or import a spreadsheet.</p></div>
+    <div class="step reveal"><div class="step-num">3</div><h3>Track & Improve</h3><p>Watch your reports update in real time and hit your goals.</p></div>
+  </div>
+</section>
+
+<section class="cta">
+  <h2 class="reveal">Ready to Take <em>Control?</em></h2>
+  <p class="reveal">Join thousands of people already managing their money smarter.</p>
+  <a href="register.html" class="btn-hero btn-gold reveal">Create Free Account →</a>
+</section>
+
+<footer>
+  <div class="footer-logo"><span class="footer-logo-dot"></span>BudgetTracker</div>
+  <div><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a></div>
+  <span>© 2025 BudgetTracker. All rights reserved.</span>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
+  });
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) { setTimeout(() => e.target.classList.add('visible'), i * 80); obs.unobserve(e.target); }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>

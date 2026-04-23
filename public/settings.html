@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="theme.js"></script>
+  <script src="translations.js"></script>
+<script src="language.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Settings – BudgetTracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#080f08; --bg2:#0c140c; --bg3:#111a11; --card:#141f14; --card2:#1a2a1a;
+  --border:#1f2f1f; --border2:#2a402a; --green-dark:#1a3d1a; --green:#2d6a2d;
+  --green-mid:#3a8c3a; --green-bright:#52b052; --gold:#c9a84c; --gold-light:#e8c86a;
+  --gold-bright:#f5d87a; --gold-dim:rgba(201,168,76,0.12); --gold-border:rgba(201,168,76,0.25);
+  --red:#e05555; --red-dim:rgba(224,85,85,0.12); --text:#e8f0e0; --tmid:#7a9870; --tdim:#3a5030;
+  --sidebar-w:235px; --font-d:'DM Serif Display',serif; --font-b:'DM Sans',sans-serif;
+}
+body { font-family:var(--font-b); background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* SIDEBAR */
+.sidebar { position:fixed; top:0; left:0; bottom:0; width:var(--sidebar-w); background:var(--bg2); border-right:1px solid var(--border); display:flex; flex-direction:column; z-index:100; transition:transform .3s; }
+.sidebar-logo { padding:24px 20px 20px; border-bottom:1px solid var(--border); font-family:var(--font-d); font-size:20px; color:var(--text); display:flex; align-items:center; gap:9px; text-decoration:none; }
+.logo-dot { width:9px; height:9px; background:var(--gold); border-radius:50%; flex-shrink:0; box-shadow:0 0 10px rgba(201,168,76,0.6); }
+.nav-section { flex:1; padding:16px 10px; overflow-y:auto; }
+.nav-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.12em; color:var(--tdim); padding:0 10px; margin:16px 0 6px; }
+.nav-link { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:9px; text-decoration:none; font-size:13.5px; font-weight:500; color:var(--tmid); transition:background .15s,color .15s; margin-bottom:2px; }
+.nav-link:hover { background:var(--bg3); color:var(--text); }
+.nav-link.active { background:var(--gold-dim); color:var(--gold-light); border:1px solid var(--gold-border); }
+.nav-link .icon { font-size:15px; width:20px; text-align:center; flex-shrink:0; }
+.sidebar-bottom { padding:14px 10px; border-top:1px solid var(--border); }
+.profile-row { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:9px; cursor:pointer; transition:background .15s; }
+.profile-row:hover { background:var(--bg3); }
+.avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--gold),var(--gold-bright)); color:#0c0c00; font-family:var(--font-d); font-size:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.profile-name  { font-size:13px; font-weight:500; color:var(--text); }
+.profile-email { font-size:11px; color:#7a9870; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:135px; }
+.logout-btn { width:100%; margin-top:10px; padding:9px; background:var(--red-dim); color:#f09090; border:1px solid rgba(224,85,85,0.2); border-radius:8px; font-family:var(--font-b); font-size:13px; font-weight:500; cursor:pointer; }
+.logout-btn:hover { background:rgba(224,85,85,0.22); }
+
+/* MAIN */
+.main { margin-left:var(--sidebar-w); padding:32px 32px 60px; min-height:100vh; }
+.topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; }
+.topbar-left h1 { font-family:var(--font-d); font-size:26px; color:var(--text); }
+.topbar-left p  { font-size:13px; color:var(--tdim); margin-top:3px; }
+.back-btn { display:flex; align-items:center; gap:6px; padding:9px 18px; background:var(--gold-dim); border:1px solid var(--gold-border); border-radius:50px; color:var(--gold-light); font-size:13px; font-weight:500; text-decoration:none; }
+.back-btn:hover { background:rgba(201,168,76,0.22); }
+
+.page-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+
+/* CARD */
+.card { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:20px; }
+.card-header { padding:16px 22px; background:var(--green-dark); border-bottom:1px solid rgba(201,168,76,0.15); display:flex; align-items:center; gap:10px; }
+.card-icon  { font-size:18px; }
+.card-title { font-family:var(--font-d); font-size:17px; color:var(--gold-light); }
+.card-body  { padding:22px; }
+
+/* CURRENCY */
+.currency-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.currency-opt { padding:14px 10px; border-radius:12px; border:1px solid var(--border2); background:var(--bg3); cursor:pointer; text-align:center; transition:all .2s; }
+.currency-opt:hover { border-color:var(--gold-border); background:var(--gold-dim); }
+.currency-opt.selected { border-color:var(--gold); background:var(--gold-dim); box-shadow:0 0 0 1px var(--gold); }
+.currency-sym  { font-family:var(--font-d); font-size:26px; color:var(--gold-light); margin-bottom:4px; }
+.currency-name { font-size:11px; color:var(--tmid); }
+.currency-code { font-size:10px; color:var(--tdim); margin-top:2px; }
+.currency-note { font-size:12px; color:var(--tdim); margin-top:14px; line-height:1.5; }
+
+/* ACCOUNTS */
+.account-list { display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
+.account-item { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--bg3); border:1px solid var(--border2); border-radius:12px; transition:border-color .15s; cursor:pointer; }
+.account-item:hover { border-color:var(--gold-border); }
+.account-item.active { border-color:var(--gold); background:var(--gold-dim); }
+.account-ico  { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; background:var(--card2); }
+.account-info { flex:1; }
+.account-name { font-size:13px; font-weight:600; color:var(--text); }
+.account-type { font-size:11px; color:var(--tdim); margin-top:2px; }
+.account-badge { font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; background:var(--gold-dim); color:var(--gold-light); border:1px solid var(--gold-border); }
+.add-acc-row { display:flex; gap:8px; }
+.acc-input  { flex:1; padding:10px 12px; background:var(--bg3); border:1px solid var(--border2); border-radius:9px; font-family:var(--font-b); font-size:13px; color:var(--text); outline:none; }
+.acc-input:focus { border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-dim); }
+.acc-input::placeholder { color:var(--tdim); }
+.acc-select { padding:10px 12px; background:var(--bg3); border:1px solid var(--border2); border-radius:9px; font-family:var(--font-b); font-size:13px; color:var(--text); outline:none; }
+.acc-select option { background:var(--bg3); }
+.btn-add-acc { padding:10px 14px; background:var(--gold-dim); border:1px solid var(--gold-border); color:var(--gold-light); border-radius:9px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
+.btn-add-acc:hover { background:rgba(201,168,76,0.25); }
+
+/* BACKUP */
+.backup-info { font-size:13px; color:var(--tmid); line-height:1.6; margin-bottom:16px; }
+.backup-btn { width:100%; padding:12px; border:none; border-radius:10px; font-family:var(--font-b); font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:10px; transition:opacity .2s,transform .15s; }
+.backup-btn:hover { opacity:.88; transform:translateY(-1px); }
+.btn-export-data { background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:#0c0c00; }
+.btn-import-data { background:var(--bg3); border:1px solid var(--gold-border); color:var(--gold-light); }
+.restore-drop { border:2px dashed var(--border2); border-radius:12px; padding:24px; text-align:center; color:var(--tdim); font-size:13px; cursor:pointer; transition:all .2s; display:none; margin-top:4px; }
+.restore-drop.show { display:block; }
+.restore-drop:hover,.restore-drop.dragover { border-color:var(--gold-border); color:var(--gold-light); background:var(--gold-dim); }
+.restore-drop-ico { font-size:28px; margin-bottom:8px; }
+.backup-last { font-size:12px; color:var(--tdim); margin-top:10px; }
+
+/* PIN */
+.pin-toggle-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+.pin-toggle-lbl { font-size:14px; font-weight:500; color:var(--text); }
+.pin-toggle-sub { font-size:12px; color:var(--tdim); margin-top:2px; }
+.toggle-sw { position:relative; width:46px; height:26px; }
+.toggle-sw input { opacity:0; width:0; height:0; }
+.toggle-slider { position:absolute; inset:0; cursor:pointer; border-radius:26px; background:var(--border2); transition:.3s; }
+.toggle-slider:before { content:''; position:absolute; width:20px; height:20px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.3s; }
+.toggle-sw input:checked + .toggle-slider { background:var(--gold); }
+.toggle-sw input:checked + .toggle-slider:before { transform:translateX(20px); }
+.pin-setup { display:none; }
+.pin-setup.show { display:block; }
+.pin-setup-lbl { font-size:12px; font-weight:600; color:var(--tmid); text-transform:uppercase; letter-spacing:.05em; text-align:center; margin-bottom:8px; }
+.pin-dots { display:flex; gap:14px; justify-content:center; margin:12px 0 16px; }
+.pin-dot  { width:16px; height:16px; border-radius:50%; border:2px solid var(--border2); transition:all .2s; }
+.pin-dot.filled { background:var(--gold); border-color:var(--gold); }
+.pin-keypad { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+.pin-key { padding:13px; border-radius:10px; background:var(--bg3); border:1px solid var(--border2); font-family:var(--font-d); font-size:20px; color:var(--text); cursor:pointer; text-align:center; transition:all .15s; }
+.pin-key:hover { background:var(--gold-dim); border-color:var(--gold-border); color:var(--gold-light); }
+.pin-key.del { font-size:15px; color:var(--tmid); }
+.pin-key.del:hover { background:var(--red-dim); border-color:rgba(224,85,85,0.2); color:var(--red); }
+.pin-btns { display:flex; gap:10px; }
+.btn-set-pin { flex:1; padding:11px; border:none; border-radius:10px; font-family:var(--font-b); font-size:14px; font-weight:600; cursor:pointer; background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:#0c0c00; }
+.btn-clr-pin { padding:11px 16px; border:1px solid var(--border2); border-radius:10px; font-family:var(--font-b); font-size:13px; cursor:pointer; background:var(--bg3); color:var(--tmid); }
+.pin-msg { font-size:12px; text-align:center; margin-top:10px; min-height:16px; }
+.pin-msg.ok  { color:var(--green-bright); }
+.pin-msg.err { color:var(--red); }
+
+/* PIN LOCK OVERLAY */
+.pin-overlay { display:none; position:fixed; inset:0; z-index:9000; background:var(--bg); align-items:center; justify-content:center; flex-direction:column; }
+.pin-overlay.show { display:flex; }
+.pin-lock-logo { font-family:var(--font-d); font-size:22px; color:var(--text); display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.pin-lock-sub  { font-size:13px; color:var(--tdim); margin-bottom:28px; }
+.pin-lock-dots { display:flex; gap:14px; justify-content:center; margin-bottom:22px; }
+.pin-lock-dot  { width:18px; height:18px; border-radius:50%; border:2px solid var(--border2); transition:all .2s; }
+.pin-lock-dot.filled { background:var(--gold); border-color:var(--gold); }
+.pin-lock-pad  { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; max-width:260px; margin:0 auto 12px; }
+.pin-lock-key  { padding:16px; border-radius:14px; background:var(--card); border:1px solid var(--border2); font-family:var(--font-d); font-size:22px; color:var(--text); cursor:pointer; text-align:center; transition:all .15s; }
+.pin-lock-key:hover { background:var(--gold-dim); border-color:var(--gold-border); color:var(--gold-light); }
+.pin-lock-key.del { font-size:16px; color:var(--tmid); }
+.pin-lock-err  { font-size:13px; color:var(--red); min-height:18px; text-align:center; }
+
+/* SAVED STRIP */
+.saved-strip { display:none; padding:11px 16px; border-radius:10px; margin-bottom:16px; background:rgba(82,176,82,0.1); border:1px solid rgba(82,176,82,0.25); font-size:13px; color:var(--green-bright); align-items:center; gap:8px; }
+.saved-strip.show { display:flex; }
+
+/* TOAST */
+.toast { position:fixed; bottom:22px; right:24px; background:var(--gold); color:#0c0c00; padding:11px 20px; border-radius:12px; font-size:13px; font-weight:600; z-index:999; transform:translateY(50px); opacity:0; transition:transform .35s cubic-bezier(.175,.885,.32,1.275),opacity .35s; pointer-events:none; }
+.toast.show { transform:translateY(0); opacity:1; }
+.toast.err  { background:var(--red); color:#fff; }
+
+/* BUDGET FIELD STYLES */
+.field { margin-bottom:16px; }
+.field label { font-size:11px; font-weight:700; color:#7a9870; text-transform:uppercase; letter-spacing:.06em; display:block; margin-bottom:6px; }
+.field input { width:100%; padding:11px 13px; background:var(--bg3); border:1px solid var(--border2); border-radius:10px; font-family:var(--font-b); font-size:14px; color:var(--text); outline:none; transition:border-color .2s,box-shadow .2s; }
+.field input:focus { border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-dim); }
+.field input::placeholder { color:var(--tdim); }
+.field-hint { font-size:11px; color:#7a9870; margin-top:5px; }
+.lang-grid { 
+  display:grid; 
+  grid-template-columns:repeat(5,1fr); 
+  gap:10px; 
+  max-height:420px; 
+  overflow-y:auto; 
+  padding-right:4px; 
+}
+.lang-btn { padding:14px 8px; border-radius:12px; border:1px solid var(--border2); background:var(--bg3); cursor:pointer; text-align:center; transition:all .15s; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.lang-btn:hover { border-color:var(--gold-border); background:var(--gold-dim); }
+.lang-btn.selected { border-color:var(--gold-border); background:var(--gold-dim); }
+.lang-flag   { font-size:22px; }
+.lang-name   { font-size:12px; font-weight:600; color:var(--text); }
+.lang-native { font-size:13px; color:var(--tmid); }
+.lang-btn.selected .lang-name   { color:var(--gold-light); }
+.lang-btn.selected .lang-native { color:var(--gold); }
+.btn-save-lang { padding:9px 20px; border:none; border-radius:9px; background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:#0c0c00; font-family:var(--font-b); font-size:13px; font-weight:600; cursor:pointer; transition:opacity .2s; }
+.btn-save-lang:hover { opacity:.88; }
+@media (max-width:900px) { .lang-grid { grid-template-columns:repeat(3,1fr); } }
+@media (max-width:500px) { .lang-grid { grid-template-columns:repeat(2,1fr); } }
+
+.menu-btn { display:none; position:fixed; top:14px; left:14px; z-index:200; width:38px; height:38px; background:var(--green-dark); border:1px solid var(--gold-border); border-radius:9px; align-items:center; justify-content:center; color:var(--gold-light); font-size:18px; cursor:pointer; }
+.sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:90; }
+::-webkit-scrollbar { width:5px; } ::-webkit-scrollbar-track { background:transparent; } ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
+@media (max-width:900px)  { .page-grid { grid-template-columns:1fr; } }
+@media (max-width:700px)  {
+  .sidebar { transform:translateX(-100%); } .sidebar.open { transform:translateX(0); }
+  .sidebar-overlay.open { display:block; } .main { margin-left:0; padding:72px 16px 40px; }
+  .menu-btn { display:flex; } .topbar { flex-direction:column; align-items:flex-start; gap:12px; }
+  .currency-grid { grid-template-columns:repeat(2,1fr); }
+}
+</style>
+
+</head>
+<body>
+
+<!-- PIN LOCK OVERLAY -->
+<div class="pin-overlay" id="pinOverlay">
+  <div class="pin-lock-logo">🔒 BudgetTracker</div>
+  <div class="pin-lock-sub">Enter your PIN to continue</div>
+  <div class="pin-lock-dots">
+    <div class="pin-lock-dot" id="pld0"></div>
+    <div class="pin-lock-dot" id="pld1"></div>
+    <div class="pin-lock-dot" id="pld2"></div>
+    <div class="pin-lock-dot" id="pld3"></div>
+  </div>
+  <div class="pin-lock-pad">
+    <div class="pin-lock-key" onclick="plKey('1')">1</div>
+    <div class="pin-lock-key" onclick="plKey('2')">2</div>
+    <div class="pin-lock-key" onclick="plKey('3')">3</div>
+    <div class="pin-lock-key" onclick="plKey('4')">4</div>
+    <div class="pin-lock-key" onclick="plKey('5')">5</div>
+    <div class="pin-lock-key" onclick="plKey('6')">6</div>
+    <div class="pin-lock-key" onclick="plKey('7')">7</div>
+    <div class="pin-lock-key" onclick="plKey('8')">8</div>
+    <div class="pin-lock-key" onclick="plKey('9')">9</div>
+    <div class="pin-lock-key" style="visibility:hidden;"></div>
+    <div class="pin-lock-key" onclick="plKey('0')">0</div>
+    <div class="pin-lock-key del" onclick="plDel()">⌫</div>
+  </div>
+  <div class="pin-lock-err" id="plErr"></div>
+</div>
+
+<button class="menu-btn" onclick="toggleMenu()">☰</button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleMenu()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="sidebar-logo" href="welcome.html"><span class="logo-dot"></span>BudgetTracker</a>
+  <nav class="nav-section">
+    <div class="nav-label">Main</div>
+   <a href="index.html"          class="nav-link"><span class="icon">🏠</span> <span data-i18n="dashboard">Dashboard</span></a>
+<a href="income-expense.html" class="nav-link"><span class="icon">📊</span> <span data-i18n="income_expense">Income vs Expense</span></a>
+<a href="monthly.html"        class="nav-link"><span class="icon">📅</span> <span data-i18n="monthly_summary">Monthly Report</span></a>
+<a href="barchart.html"       class="nav-link"><span class="icon">📈</span> <span data-i18n="bar_chart">Bar Chart</span></a>
+<a href="savings-goals.html"  class="nav-link"><span class="icon">🏆</span> <span data-i18n="savings_goals">Savings Goals</span></a>
+<a href="bill-reminders.html" class="nav-link"><span class="icon">🔔</span> <span data-i18n="bill_reminders">Bill Reminders</span></a>
+<a href="pdf-report.html"     class="nav-link"><span class="icon">📄</span> <span data-i18n="pdf_report">PDF Report</span></a>
+ <a class="nav-link" onclick="HelpTour.start()" style="cursor:pointer;">
+  <span class="icon">🩵</span> Help Tour
+</a>
+</nav>
+  <div class="sidebar-bottom">
+    <div class="profile-row" onclick="toggleProfile(event)" style="cursor:pointer;">
+      <div class="avatar" id="avatarLetter">U</div>
+      <div>
+        <div class="profile-name"  id="profileName">User</div>
+        <div class="profile-email" id="profileEmail">—</div>
+      </div>
+    </div>
+    </div>
+</aside>
+
+<div id="profilePopup" style="display:none;position:fixed;bottom:75px;left:10px;width:220px;background:#1a2a1a;border:1px solid rgba(201,168,76,0.25);border-radius:14px;padding:16px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+  <div style="font-size:14px;font-weight:700;color:#e8f0e0;margin-bottom:3px;" id="popupName">User</div>
+  <div style="font-size:11px;color:#7a9870;margin-bottom:12px;" id="popupEmail">—</div>
+  <div style="height:1px;background:#1f2f1f;margin-bottom:12px;"></div>
+  <a href="profile.html" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);border-radius:9px;color:#e8c86a;font-size:12px;font-weight:600;text-decoration:none;margin-bottom:6px;">👤 View Profile</a>
+  <a href="settings.html" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);border-radius:9px;color:#e8c86a;font-size:12px;font-weight:600;text-decoration:none;margin-bottom:6px;">⚙️ Budget & Settings</a>
+  <button onclick="logout()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(224,85,85,0.1);border:1px solid rgba(224,85,85,0.2);border-radius:9px;color:#f09090;font-size:12px;font-weight:600;cursor:pointer;">🚪 Sign Out</button>
+</div>
+
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>⚙️ <span data-i18n="settings_title">Budget & Settings</span></h1>
+      <p>Manage your budget, currency, accounts, backup and security</p>
+    </div>
+    <a href="index.html" class="back-btn">← Dashboard</a>
+  </div>
+
+  <div class="saved-strip" id="savedStrip">✅ Saved successfully!</div>
+
+  <!-- ══ BUDGET SETTINGS SECTION ══ -->
+  <div style="margin-bottom:10px;">
+    <div style="font-family:var(--font-d);font-size:20px;color:var(--gold-light);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+      💰 Budget Settings
+    </div>
+  </div>
+
+  <div class="page-grid" style="margin-bottom:32px;">
+    <!-- LEFT: BUDGET FORM -->
+    <div>
+      <div class="card">
+        <div class="card-header"><span class="card-icon">✏️</span><span class="card-title">Enter Your Details</span></div>
+        <div class="card-body">
+          <div class="field">
+            <label>Monthly Salary</label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--gold);font-weight:600;">₹</span>
+              <input type="number" id="salary" placeholder="e.g. 50000" min="0" oninput="liveUpdate()" style="padding-left:32px;"/>
+            </div>
+            <div class="field-hint">Your total monthly take-home income</div>
+          </div>
+          <div class="field">
+            <label>Savings Goal</label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--gold);font-weight:600;">₹</span>
+              <input type="number" id="saving" placeholder="e.g. 10000" min="0" oninput="liveUpdate()" style="padding-left:32px;"/>
+            </div>
+            <div class="field-hint">How much you want to save this month</div>
+          </div>
+          <div class="field">
+            <label>Already Spent This Month</label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--gold);font-weight:600;">₹</span>
+              <input type="number" id="spent" placeholder="e.g. 8000" min="0" oninput="liveUpdate()" style="padding-left:32px;"/>
+            </div>
+            <div class="field-hint">Auto-synced from dashboard</div>
+          </div>
+          <button class="btn-add-acc" style="width:100%;padding:12px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#0c0c00;border:none;border-radius:10px;font-family:var(--font-b);font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;" onclick="saveBudget()">💾 Save Budget</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: BUDGET RESULTS -->
+    <div>
+      <div class="card">
+        <div class="card-header"><span class="card-icon">📊</span><span class="card-title">Budget Breakdown</span></div>
+        <div class="card-body">
+          <div id="budgetResults" style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--tmid);">💼 Monthly Salary</span><span style="font-family:var(--font-d);font-size:16px;color:#ffffff;" id="r-salary">₹0</span></div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--tmid);">🏦 Savings Goal</span><span style="font-family:var(--font-d);font-size:16px;color:var(--green-bright);" id="r-saving">₹0</span></div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--tmid);">💸 Already Spent</span><span style="font-family:var(--font-d);font-size:16px;color:var(--red);" id="r-spent">₹0</span></div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--tmid);">🎯 Expense Budget</span><span style="font-family:var(--font-d);font-size:16px;color:var(--gold-light);" id="r-budget">₹0</span></div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;"><span style="color:var(--tmid);">✅ Remaining</span><span style="font-family:var(--font-d);font-size:16px;color:var(--green-bright);" id="r-remaining">₹0</span></div>
+          </div>
+          <!-- Budget Progress Bar -->
+          <div style="margin-top:16px;">
+            <div style="height:10px;background:var(--border2);border-radius:5px;overflow:hidden;">
+              <div id="budgetBar" style="height:100%;border-radius:5px;background:var(--green-bright);width:0%;transition:width .6s ease;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:#7a9870;">
+              <span id="budgetBarLeft">0% spent</span>
+              <span id="budgetBarRight">100% free</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SETTINGS SECTION ══ -->
+  <div style="margin-bottom:10px;">
+    <div style="font-family:var(--font-d);font-size:20px;color:var(--gold-light);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+      ⚙️ App Settings
+    </div>
+  </div>
+
+  <div class="page-grid">
+
+    <!-- LEFT -->
+    <div>
+      <!-- CURRENCY -->
+      <div class="card">
+        <div class="card-header"><span class="card-icon">💱</span><span class="card-title" data-i18n="currency">Currency</span></div>
+        <div class="card-body">
+          <div class="currency-grid">
+            <div class="currency-opt" data-sym="₹" data-code="INR" onclick="selectCurrency(this)">
+              <div class="currency-sym">₹</div><div class="currency-name">Indian Rupee</div><div class="currency-code">INR</div>
+            </div>
+            <div class="currency-opt" data-sym="$" data-code="USD" onclick="selectCurrency(this)">
+              <div class="currency-sym">$</div><div class="currency-name">US Dollar</div><div class="currency-code">USD</div>
+            </div>
+            <div class="currency-opt" data-sym="€" data-code="EUR" onclick="selectCurrency(this)">
+              <div class="currency-sym">€</div><div class="currency-name">Euro</div><div class="currency-code">EUR</div>
+            </div>
+            <div class="currency-opt" data-sym="£" data-code="GBP" onclick="selectCurrency(this)">
+              <div class="currency-sym">£</div><div class="currency-name">British Pound</div><div class="currency-code">GBP</div>
+            </div>
+            <div class="currency-opt" data-sym="¥" data-code="JPY" onclick="selectCurrency(this)">
+              <div class="currency-sym">¥</div><div class="currency-name">Japanese Yen</div><div class="currency-code">JPY</div>
+            </div>
+            <div class="currency-opt" data-sym="د.إ" data-code="AED" onclick="selectCurrency(this)">
+              <div class="currency-sym" style="font-size:18px;">د.إ</div><div class="currency-name">UAE Dirham</div><div class="currency-code">AED</div>
+            </div>
+          </div>
+          <p class="currency-note">⚠️ Changing currency updates the symbol across all pages. It does not convert existing amounts.</p>
+        </div>
+      </div>
+
+      <!-- BACKUP -->
+      <div class="card">
+        <div class="card-header"><span class="card-icon">💾</span><span class="card-title" data-i18n="save_settings">Data Backup & Restore</span></div>
+        <div class="card-body">
+          <p class="backup-info">Export all your expenses, bills, goals and settings as a JSON file. Restore anytime by importing it back.</p>
+          <button class="backup-btn btn-export-data" onclick="exportData()">📥 Export All Data</button>
+          <button class="backup-btn btn-import-data" onclick="toggleDrop()">📤 Import / Restore</button>
+          <div class="restore-drop" id="restoreDrop"
+            ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)"
+            onclick="document.getElementById('fileInput').click()">
+            <div class="restore-drop-ico">📂</div>
+            <div>Click or drag & drop your backup JSON file here</div>
+            <input type="file" id="fileInput" accept=".json" style="display:none;" onchange="onFileSelect(event)"/>
+          </div>
+          <div class="backup-last" id="backupLast"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+      <!-- THEME -->
+<div class="card">
+  <div class="card-header"><span class="card-icon">🎨</span><span class="card-title">App Theme</span></div>
+  <div class="card-body">
+    <div style="display:flex; gap:12px;">
+
+      <div id="themeDark" onclick="applyTheme('dark')"
+        style="flex:1; padding:16px 12px; border-radius:12px; cursor:pointer;
+               background:#0c140c; border:2px solid var(--gold-border);
+               text-align:center; transition:all .2s;">
+        <div style="font-size:26px; margin-bottom:6px;">🌙</div>
+        <div style="font-size:13px; font-weight:600; color:#e8f0e0;">Dark Mode</div>
+        <div style="font-size:11px; color:#7a9870; margin-top:3px;">Default</div>
+      </div>
+
+      <div id="themeLight" onclick="applyTheme('light')"
+        style="flex:1; padding:16px 12px; border-radius:12px; cursor:pointer;
+               background:#f0f5ee; border:2px solid #c8ddc0;
+               text-align:center; transition:all .2s;">
+        <div style="font-size:26px; margin-bottom:6px;">☀️</div>
+        <div style="font-size:13px; font-weight:600; color:#1a2e1a;">Light Mode</div>
+        <div style="font-size:11px; color:#3a5c2a; margin-top:3px;">Clean & bright</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- APP MODE -->
+      <div class="card">
+        <div class="card-header"><span class="card-icon">🔄</span><span class="card-title">App Mode</span></div>
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:12px;">
+
+            <div id="opt-personal" onclick="switchAppMode('personal')"
+              style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:10px;border:2px solid var(--gold);background:var(--gold-dim);cursor:pointer;transition:all .2s;">
+              <div style="font-size:1.5rem;">👤</div>
+              <div style="flex:1;">
+                <div style="font-weight:600;color:var(--text);font-size:0.95rem;">Personal</div>
+                <div style="font-size:0.78rem;color:var(--tmid);margin-top:2px;">Track your own expenses & savings</div>
+              </div>
+              <div id="check-personal" style="color:var(--gold-light);font-size:1.1rem;font-weight:bold;">✔</div>
+            </div>
+
+            <div id="opt-business" onclick="switchAppMode('business')"
+              style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:10px;border:2px solid var(--border2);background:var(--bg3);cursor:pointer;transition:all .2s;">
+              <div style="font-size:1.5rem;">💼</div>
+              <div style="flex:1;">
+                <div style="font-weight:600;color:var(--text);font-size:0.95rem;">Business</div>
+                <div style="font-size:0.78rem;color:var(--tmid);margin-top:2px;">Khata style — Money IN / OUT</div>
+              </div>
+              <div id="check-business" style="color:var(--gold-light);font-size:1.1rem;font-weight:bold;visibility:hidden;">✔</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      
+      <!-- LANGUAGE -->
+      <div class="card">
+        <div class="card-header"><span class="card-icon">🌐</span><span class="card-title" data-i18n="language_settings">Language</span></div>
+        <div class="card-body">
+          <div class="lang-grid" id="langGrid"></div>
+          <div style="margin-top:14px;font-size:12px;color:var(--tdim);">
+            🌍 Select your preferred language. Applied instantly across all pages.
+          </div>
+        </div>
+      </div>
+      
+      <!-- ACCOUNTS -->
+      <div class="card">
+        <div class="card-header"><span class="card-icon">👥</span><span class="card-title" data-i18n="profile_title">Multiple Accounts</span></div>
+        <div class="card-body">
+          <div class="account-list" id="accountList"></div>
+          <div class="add-acc-row">
+            <input class="acc-input" type="text" id="accName" placeholder="Account name…"/>
+            <select class="acc-select" id="accType">
+              <option value="Personal">👤 Personal</option>
+              <option value="Business">🏢 Business</option>
+              <option value="Family">👨‍👩‍👧 Family</option>
+              <option value="Savings">🏦 Savings</option>
+            </select>
+            <button class="btn-add-acc" onclick="addAccount()">+ Add</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PIN LOCK -->
+      <div class="card">
+        <div class="card-header"><span class="card-icon">🔒</span><span class="card-title" data-i18n="pin_lock">PIN Lock</span></div>
+        <div class="card-body">
+          <div class="pin-toggle-row">
+            <div>
+              <div class="pin-toggle-lbl">Enable PIN Lock</div>
+              <div class="pin-toggle-sub">Require PIN when opening the app</div>
+            </div>
+            <label class="toggle-sw">
+              <input type="checkbox" id="pinToggle" onchange="togglePinSetup()"/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="pin-setup" id="pinSetup">
+            <div class="pin-setup-lbl" id="pinLbl">Set a 4-digit PIN</div>
+            <div class="pin-dots">
+              <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+              <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
+            </div>
+            <div class="pin-keypad">
+              <div class="pin-key" onclick="pinKey('1')">1</div>
+              <div class="pin-key" onclick="pinKey('2')">2</div>
+              <div class="pin-key" onclick="pinKey('3')">3</div>
+              <div class="pin-key" onclick="pinKey('4')">4</div>
+              <div class="pin-key" onclick="pinKey('5')">5</div>
+              <div class="pin-key" onclick="pinKey('6')">6</div>
+              <div class="pin-key" onclick="pinKey('7')">7</div>
+              <div class="pin-key" onclick="pinKey('8')">8</div>
+              <div class="pin-key" onclick="pinKey('9')">9</div>
+              <div class="pin-key" style="visibility:hidden;"></div>
+              <div class="pin-key" onclick="pinKey('0')">0</div>
+              <div class="pin-key del" onclick="pinDel()">⌫</div>
+            </div>
+            <div class="pin-btns">
+              <button class="btn-set-pin" onclick="savePin()">🔒 Set PIN</button>
+              <button class="btn-clr-pin" onclick="clearPin()">Clear</button>
+            </div>
+            <div class="pin-msg" id="pinMsg"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- DANGER ZONE -->
+    <div class="card" style="border-color:rgba(224,85,85,0.3);margin-top:8px;">
+      <div class="card-header" style="background:rgba(224,85,85,0.08);border-bottom:1px solid rgba(224,85,85,0.2);">
+        <span class="card-icon">⚠️</span>
+        <span class="card-title" style="color:#f09090;">Danger Zone</span>
+      </div>
+      <div class="card-body">
+        <p style="font-size:13px;color:var(--tmid);line-height:1.6;margin-bottom:18px;">
+          Permanently deletes your account, all expenses, goals, bills and business data from the server. <strong style="color:#f09090;">This cannot be undone.</strong>
+        </p>
+        <button onclick="deleteAccount()"
+          style="padding:12px 24px;border-radius:10px;font-family:var(--font-b);font-size:14px;font-weight:700;cursor:pointer;border:2px solid var(--red);background:var(--red-dim);color:#f09090;transition:all .2s;"
+          onmouseover="this.style.background='var(--red)';this.style.color='#fff';"
+          onmouseout="this.style.background='var(--red-dim)';this.style.color='#f09090';">
+          🗑️ Delete My Account Permanently
+        </button>
+      </div>
+    </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+<script src="userdata.js"></script>
+<script>
+if (!localStorage.getItem('token')) window.location.href = 'login.html';
+
+/* CHECK PIN ON LOAD */
+(function() {
+  const pin = localStorage.getItem('bt_pin');
+  const ok  = sessionStorage.getItem('bt_unlocked');
+  if (pin && !ok) document.getElementById('pinOverlay').classList.add('show');
+})();
+
+/* PIN LOCK OVERLAY */
+let plInput = '';
+function plKey(k) {
+  if (plInput.length >= 4) return;
+  plInput += k;
+  updatePlDots();
+  if (plInput.length === 4) {
+    setTimeout(() => {
+      if (plInput === localStorage.getItem('bt_pin')) {
+        sessionStorage.setItem('bt_unlocked', '1');
+        document.getElementById('pinOverlay').classList.remove('show');
+        document.getElementById('plErr').textContent = '';
+      } else {
+        document.getElementById('plErr').textContent = '❌ Wrong PIN. Try again.';
+        plInput = ''; updatePlDots();
+      }
+    }, 200);
+  }
+}
+function plDel() { plInput = plInput.slice(0,-1); updatePlDots(); }
+function updatePlDots() { for(let i=0;i<4;i++) document.getElementById('pld'+i).classList.toggle('filled', i<plInput.length); }
+
+/* STATE */
+let accounts = JSON.parse(localStorage.getItem('bt_accounts') || '[]');
+let pinInput = '', pinConfirm = '', pinStep = 'set';
+
+function init() {
+  const name  = localStorage.getItem('userName')  || localStorage.getItem('name')  || 'User';
+  const email = localStorage.getItem('userEmail') || localStorage.getItem('email') || '';
+  document.getElementById('avatarLetter').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('profileName').textContent  = name;
+  document.getElementById('profileEmail').textContent = email || '—';
+
+  if (!accounts.length) {
+    accounts = [{ id:'default', name: name+' (Personal)', type:'Personal', active:true }];
+    saveAccounts();
+  }
+  loadCurrency();
+  renderAccounts();
+  loadPinState();
+  loadBackupDate();
+}
+
+/* CURRENCY */
+function loadCurrency() {
+  const code = localStorage.getItem('bt_currency') || 'INR';
+  document.querySelectorAll('.currency-opt').forEach(o => o.classList.toggle('selected', o.dataset.code === code));
+}
+function selectCurrency(el) {
+  document.querySelectorAll('.currency-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  localStorage.setItem('bt_currency',     el.dataset.code);
+  localStorage.setItem('bt_currency_sym', el.dataset.sym);
+  showToast(`Currency set to ${el.dataset.sym} (${el.dataset.code})`);
+  showSaved();
+}
+
+/* ACCOUNTS */
+const TYPE_ICONS = { Personal:'👤', Business:'🏢', Family:'👨‍👩‍👧', Savings:'🏦' };
+function renderAccounts() {
+  const box = document.getElementById('accountList');
+  if (!accounts.length) { box.innerHTML='<div style="font-size:13px;color:var(--tdim);">No accounts yet.</div>'; return; }
+  box.innerHTML = accounts.map(a => `
+    <div class="account-item ${a.active?'active':''}" onclick="switchAccount('${a.id}')">
+      <div class="account-ico">${TYPE_ICONS[a.type]||'👤'}</div>
+      <div class="account-info">
+        <div class="account-name">${esc(a.name)}</div>
+        <div class="account-type">${a.type}</div>
+      </div>
+      ${a.active ? '<span class="account-badge">✅ Active</span>' : `<button onclick="delAccount(event,'${a.id}')" style="background:none;border:none;color:var(--tdim);cursor:pointer;font-size:15px;padding:4px;" title="Delete">🗑️</button>`}
+    </div>`).join('');
+}
+function addAccount() {
+  const name = document.getElementById('accName').value.trim();
+  const type = document.getElementById('accType').value;
+  if (!name) return showToast('Enter an account name', true);
+  accounts.push({ id: Date.now().toString(), name, type, active:false });
+  saveAccounts(); renderAccounts();
+  document.getElementById('accName').value = '';
+  showToast('Account added: '+name);
+}
+function switchAccount(id) {
+  accounts = accounts.map(a => ({...a, active: a.id===id}));
+  saveAccounts(); renderAccounts();
+  showToast('Switched to '+accounts.find(a=>a.id===id)?.name);
+  showSaved();
+}
+function delAccount(e, id) {
+  e.stopPropagation();
+  if (!confirm('Delete this account?')) return;
+  accounts = accounts.filter(a => a.id!==id);
+  saveAccounts(); renderAccounts();
+  showToast('Account deleted');
+}
+function saveAccounts() { localStorage.setItem('bt_accounts', JSON.stringify(accounts)); }
+
+/* BACKUP */
+function exportData() {
+  const data = {
+    exportedAt: new Date().toISOString(), version: '1.0',
+    expenses:   JSON.parse(localStorage.getItem('bt_expenses')  || '[]'),
+    bills:      JSON.parse(localStorage.getItem('bt_bills')     || '[]'),
+    goals:      JSON.parse(localStorage.getItem('bt_goals')     || '[]'),
+    incomes:    JSON.parse(localStorage.getItem('bt_incomes')   || '[]'),
+    budget:     localStorage.getItem('bt_budget')   || '0',
+    salary:     localStorage.getItem('salary')      || '0',
+    saving:     localStorage.getItem('saving')      || '0',
+    currency:   localStorage.getItem('bt_currency') || 'INR',
+    accounts,
+  };
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download='budgettracker_backup_'+new Date().toISOString().split('T')[0]+'.json'; a.click();
+  URL.revokeObjectURL(url);
+  localStorage.setItem('bt_last_backup', new Date().toISOString());
+  loadBackupDate();
+  showToast('✅ Data exported successfully!');
+}
+function toggleDrop() { document.getElementById('restoreDrop').classList.toggle('show'); }
+function onDragOver(e)  { e.preventDefault(); e.currentTarget.classList.add('dragover'); }
+function onDragLeave(e) { e.currentTarget.classList.remove('dragover'); }
+function onDrop(e) { e.preventDefault(); e.currentTarget.classList.remove('dragover'); if(e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); }
+function onFileSelect(e) { if(e.target.files[0]) processFile(e.target.files[0]); }
+function processFile(file) {
+  if (!file.name.endsWith('.json')) return showToast('Please select a JSON backup file', true);
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const dateStr = data.exportedAt ? new Date(data.exportedAt).toLocaleDateString('en-IN') : 'unknown date';
+      if (!confirm(`Restore backup from ${dateStr}?\n\nThis will overwrite your current data.`)) return;
+      if (data.expenses) { localStorage.setItem('bt_expenses', JSON.stringify(data.expenses)); localStorage.setItem('expenses', JSON.stringify(data.expenses)); }
+      if (data.bills)    localStorage.setItem('bt_bills',   JSON.stringify(data.bills));
+      if (data.goals)    localStorage.setItem('bt_goals',   JSON.stringify(data.goals));
+      if (data.incomes)  localStorage.setItem('bt_incomes', JSON.stringify(data.incomes));
+      if (data.budget)   localStorage.setItem('bt_budget',  data.budget);
+      if (data.salary)   localStorage.setItem('salary',     data.salary);
+      if (data.saving)   localStorage.setItem('saving',     data.saving);
+      if (data.currency) { localStorage.setItem('bt_currency', data.currency); loadCurrency(); }
+      if (data.accounts) { accounts = data.accounts; saveAccounts(); renderAccounts(); }
+      showToast('✅ Data restored successfully!');
+      showSaved();
+    } catch(err) { showToast('❌ Invalid backup file', true); }
+  };
+  reader.readAsText(file);
+}
+function loadBackupDate() {
+  const last = localStorage.getItem('bt_last_backup');
+  document.getElementById('backupLast').textContent = last
+    ? '🕒 Last backup: '+new Date(last).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})
+    : 'No backup created yet';
+}
+
+/* PIN */
+function loadPinState() {
+  const has = !!localStorage.getItem('bt_pin');
+  document.getElementById('pinToggle').checked = has;
+  if (has) { document.getElementById('pinSetup').classList.add('show'); document.getElementById('pinLbl').textContent = 'Change PIN'; }
+}
+function togglePinSetup() {
+  const on = document.getElementById('pinToggle').checked;
+  if (!on) {
+    if (confirm('Remove PIN lock?')) {
+      localStorage.removeItem('bt_pin'); sessionStorage.removeItem('bt_unlocked');
+      document.getElementById('pinSetup').classList.remove('show');
+      pinInput=''; pinConfirm=''; pinStep='set'; updateDots();
+      showToast('PIN lock removed');
+    } else { document.getElementById('pinToggle').checked = true; }
+  } else {
+    document.getElementById('pinSetup').classList.add('show');
+    document.getElementById('pinLbl').textContent = 'Set a 4-digit PIN';
+  }
+}
+function pinKey(k) { if(pinInput.length>=4)return; pinInput+=k; updateDots(); }
+function pinDel()  { pinInput=pinInput.slice(0,-1); updateDots(); }
+function updateDots() { for(let i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled', i<pinInput.length); }
+function savePin() {
+  if (pinInput.length < 4) return showToast('Enter a 4-digit PIN', true);
+  if (pinStep === 'set') {
+    pinConfirm = pinInput; pinInput = ''; pinStep = 'confirm';
+    updateDots(); document.getElementById('pinLbl').textContent = 'Confirm your PIN'; return;
+  }
+  const msg = document.getElementById('pinMsg');
+  if (pinInput !== pinConfirm) {
+    msg.textContent = '❌ PINs do not match. Try again.'; msg.className = 'pin-msg err';
+    pinInput=''; pinConfirm=''; pinStep='set'; updateDots();
+    document.getElementById('pinLbl').textContent = 'Set a 4-digit PIN';
+    setTimeout(()=>msg.className='pin-msg',2500); return;
+  }
+  localStorage.setItem('bt_pin', pinInput);
+  sessionStorage.setItem('bt_unlocked', '1');
+  msg.textContent = '✅ PIN set successfully!'; msg.className = 'pin-msg ok';
+  pinInput=''; pinConfirm=''; pinStep='set'; updateDots();
+  document.getElementById('pinLbl').textContent = 'Change PIN';
+  setTimeout(()=>msg.className='pin-msg',2500);
+  showToast('🔒 PIN lock enabled!'); showSaved();
+}
+function clearPin() { pinInput=''; pinConfirm=''; pinStep='set'; updateDots(); document.getElementById('pinLbl').textContent='Set a 4-digit PIN'; }
+
+/* HELPERS */
+function showSaved() { const s=document.getElementById('savedStrip'); s.classList.add('show'); setTimeout(()=>s.classList.remove('show'),3000); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
+function logout()     { localStorage.removeItem('token'); window.location.href='login.html'; }
+
+function toggleProfile(e) {
+  e.stopPropagation();
+  const p = document.getElementById('profilePopup');
+  const name  = localStorage.getItem('userName') || 'User';
+  const email = localStorage.getItem('userEmail') || '—';
+  document.getElementById('popupName').textContent  = name;
+  document.getElementById('popupEmail').textContent = email;
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', function() {
+  const p = document.getElementById('profilePopup');
+  if (p) p.style.display = 'none';
+});
+function showToast(msg,err) { const t=document.getElementById('toast'); t.textContent=msg; t.className='toast'+(err?' err':''); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+
+/* ── BUDGET FUNCTIONS ── */
+function fmt2(n) {
+  const lang = localStorage.getItem('bt_language') || 'en';
+  const localeMap = {en:'en-IN',hi:'hi-IN',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',ar:'ar-SA',fr:'fr-FR',de:'de-DE',es:'es-ES',pt:'pt-BR',ru:'ru-RU'};
+  const locale = localeMap[lang] || 'en-IN';
+const sym = localStorage.getItem('bt_currency_sym') || '₹';
+  return sym + Number(n).toLocaleString(locale,{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+
+function loadBudget() {
+  const sal = localStorage.getItem('salary') || '';
+  const sav = localStorage.getItem('saving') || '';
+  const spn = localStorage.getItem('bt_expenses') ? JSON.parse(localStorage.getItem('bt_expenses')).reduce((s,e)=>s+e.amount,0) : 0;
+  if (document.getElementById('salary')) document.getElementById('salary').value = sal;
+  if (document.getElementById('saving')) document.getElementById('saving').value = sav;
+  if (document.getElementById('spent'))  document.getElementById('spent').value  = Math.round(spn);
+  liveUpdate();
+}
+
+function liveUpdate() {
+  const sal  = parseFloat(document.getElementById('salary')?.value) || 0;
+  const sav  = parseFloat(document.getElementById('saving')?.value) || 0;
+  const spn  = parseFloat(document.getElementById('spent')?.value)  || 0;
+  const budg = Math.max(0, sal - sav);
+  const rem  = Math.max(0, budg - spn);
+  const pct  = budg > 0 ? Math.min(100, Math.round(spn/budg*100)) : 0;
+  if (document.getElementById('r-salary'))    document.getElementById('r-salary').textContent    = fmt2(sal);
+  if (document.getElementById('r-saving'))    document.getElementById('r-saving').textContent    = fmt2(sav);
+  if (document.getElementById('r-spent'))     document.getElementById('r-spent').textContent     = fmt2(spn);
+  if (document.getElementById('r-budget'))    document.getElementById('r-budget').textContent    = fmt2(budg);
+  if (document.getElementById('r-remaining')) document.getElementById('r-remaining').textContent = fmt2(rem);
+  if (document.getElementById('budgetBar'))   document.getElementById('budgetBar').style.width   = pct+'%';
+  if (document.getElementById('budgetBar'))   document.getElementById('budgetBar').style.background = pct>=90?'var(--red)':pct>=70?'var(--gold)':'var(--green-bright)';
+  if (document.getElementById('budgetBarLeft'))  document.getElementById('budgetBarLeft').textContent  = pct+'% spent';
+  if (document.getElementById('budgetBarRight')) document.getElementById('budgetBarRight').textContent = (100-pct)+'% free';
+}
+
+function saveBudget() {
+  const sal  = parseFloat(document.getElementById('salary')?.value) || 0;
+  const sav  = parseFloat(document.getElementById('saving')?.value) || 0;
+  const budg = Math.max(0, sal - sav);
+  localStorage.setItem('salary',    sal);
+  localStorage.setItem('saving',    sav);
+  localStorage.setItem('bt_budget', budg);
+  localStorage.setItem('budget',    budg);
+  showSaved();
+  showToast('💰 Budget saved! Dashboard updated.');
+}
+
+/* AUTO HIGHLIGHT ACTIVE NAV */
+(function(){ const p=location.pathname.split('/').pop()||'index.html'; document.querySelectorAll('.nav-link').forEach(a=>{ a.classList.remove('active'); if(a.getAttribute('href')===p) a.classList.add('active'); }); })();
+// Language
+/* ── LANGUAGE SYSTEM ── */
+const LANG_LIST = [
+  { code:'en', flag:'🇬🇧', name:'English',    native:'English'   },
+  { code:'hi', flag:'🇮🇳', name:'Hindi',      native:'हिंदी'     },
+  { code:'zh', flag:'🇨🇳', name:'Chinese',    native:'中文'       },
+  { code:'ja', flag:'🇯🇵', name:'Japanese',   native:'日本語'     },
+  { code:'ar', flag:'🇸🇦', name:'Arabic',     native:'العربية'   },
+  { code:'fr', flag:'🇫🇷', name:'French',     native:'Français'  },
+  { code:'de', flag:'🇩🇪', name:'German',     native:'Deutsch'   },
+  { code:'es', flag:'🇪🇸', name:'Spanish',    native:'Español'   },
+  { code:'pt', flag:'🇧🇷', name:'Portuguese', native:'Português' },
+  { code:'ko', flag:'🇰🇷', name:'Korean',     native:'한국어'     },
+  { code:'ru', flag:'🇷🇺', name:'Russian',    native:'Русский'   },
+];
+
+function renderLanguages() {
+  const saved = localStorage.getItem('bt_language') || 'en';
+  const box   = document.getElementById('langGrid');
+  if (!box) return;
+  box.innerHTML = LANG_LIST.map(l => `
+    <div class="lang-btn ${saved === l.code ? 'selected' : ''}"
+         onclick="selectLang('${l.code}')">
+      <div class="lang-flag">${l.flag}</div>
+      <div class="lang-name">${l.name}</div>
+      <div class="lang-native">${l.native}</div>
+    </div>`).join('');
+}
+
+async function selectLang(code) {
+  // Save to localStorage
+  localStorage.setItem('bt_language', code);
+
+  // Re-render grid immediately
+  renderLanguages();
+
+  // Apply RTL for Arabic
+  const langInfo = LANG_LIST.find(l => l.code === code);
+  if (langInfo) {
+    document.documentElement.setAttribute('dir', code === 'ar' ? 'rtl' : 'ltr');
+    document.documentElement.setAttribute('lang', code);
+  }
+
+  // Save to MongoDB
+  const token = localStorage.getItem('token');
+  if (token) {
+    await fetch('http://localhost:5000/api/auth/profile', {
+      method:  'PUT',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ language: code })
+    }).catch(() => {});
+  }
+
+  // Apply translations if system loaded
+  if (typeof applyTranslations === 'function') {
+    applyTranslations();
+  }
+
+  showToast('🌐 Language saved: ' + (langInfo ? langInfo.name : code));
+  showSaved();
+}
+  
+
+function loadAppMode() {
+  const mode = localStorage.getItem('bt_mode') || 'personal';
+  document.getElementById('opt-personal').style.border = mode === 'personal' ? '2px solid var(--gold)' : '2px solid var(--border2)';
+  document.getElementById('opt-personal').style.background = mode === 'personal' ? 'var(--gold-dim)' : 'var(--bg3)';
+  document.getElementById('opt-business').style.border = mode === 'business' ? '2px solid var(--gold)' : '2px solid var(--border2)';
+  document.getElementById('opt-business').style.background = mode === 'business' ? 'var(--gold-dim)' : 'var(--bg3)';
+  document.getElementById('check-personal').style.visibility = mode === 'personal' ? 'visible' : 'hidden';
+  document.getElementById('check-business').style.visibility = mode === 'business' ? 'visible' : 'hidden';
+}
+
+function switchAppMode(mode) {
+  localStorage.setItem('bt_mode', mode);
+  loadAppMode();
+  showToast(mode === 'business' ? '💼 Switching to Business Mode...' : '👤 Switching to Personal Mode...');
+  setTimeout(() => {
+    window.location.href = mode === 'business' ? 'business.html' : 'index.html';
+  }, 700);
+}
+function deleteAccount() {
+  const first = confirm('⚠️ DELETE ACCOUNT?\n\nThis will permanently delete your account and ALL data. This cannot be undone!');
+  if (!first) return;
+  const second = confirm('Are you 100% sure?\n\nAll your expenses, goals, bills and business data will be gone forever.');
+  if (!second) return;
+
+  const token = localStorage.getItem('token');
+  fetch('http://localhost:5000/api/auth/account', {
+    method: 'DELETE',
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      localStorage.clear();
+      sessionStorage.clear();
+      showToast('✅ Account deleted. Redirecting...');
+      setTimeout(() => window.location.href = 'register.html', 1500);
+    } else {
+      showToast('❌ Error: ' + data.message, true);
+    }
+  })
+  .catch(() => showToast('❌ Cannot connect to server', true));
+}
+
+renderLanguages();
+init();
+loadBudget();
+loadAppMode(); 
+
+// Apply saved language on page load
+const _savedLang = localStorage.getItem('bt_language') || 'en';
+const _savedLangInfo = LANG_LIST.find(l => l.code === _savedLang);if (_savedLangInfo) {
+  document.documentElement.setAttribute('dir', _savedLang === 'ar' ? 'rtl' : 'ltr');
+  document.documentElement.setAttribute('lang', _savedLang);
+}
+if (typeof applyTranslations === 'function') {
+  applyTranslations();
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<script src="help-tour.js"></script>
+</body>
+</html>

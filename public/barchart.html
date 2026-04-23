@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bar Chart – BudgetTracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="translations.js"></script>
+<script src="language.js"></script>
+<script src="theme.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:          #080f08;
+  --bg2:         #0c140c;
+  --bg3:         #111a11;
+  --card:        #141f14;
+  --card2:       #1a2a1a;
+  --border:      #1f2f1f;
+  --border2:     #2a402a;
+  --green-dark:  #1a3d1a;
+  --green:       #2d6a2d;
+  --green-mid:   #3a8c3a;
+  --green-bright:#52b052;
+  --gold:        #c9a84c;
+  --gold-light:  #e8c86a;
+  --gold-bright: #f5d87a;
+  --gold-dim:    rgba(201,168,76,0.12);
+  --gold-border: rgba(201,168,76,0.25);
+  --red:         #e05555;
+  --text:        #e8f0e0;
+  --tmid:        #7a9870;
+  --tdim:        #7a9870;
+  --sidebar-w:   235px;
+  --font-d:      'DM Serif Display', serif;
+  --font-b:      'DM Sans', sans-serif;
+}
+body { font-family: var(--font-b); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w);
+  background: var(--bg2); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; z-index: 100; transition: transform .3s;
+}
+.sidebar-logo {
+  padding: 24px 20px 20px; border-bottom: 1px solid var(--border);
+  font-family: var(--font-d); font-size: 20px; color: var(--text);
+  display: flex; align-items: center; gap: 9px; text-decoration: none;
+}
+.logo-dot { width: 9px; height: 9px; background: var(--gold); border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 10px rgba(201,168,76,0.6); }
+.nav-section { flex: 1; padding: 16px 10px; overflow-y: auto; }
+.nav-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; color: var(--tdim); padding: 0 10px; margin: 16px 0 6px; }
+.nav-link {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px;
+  text-decoration: none; font-size: 13.5px; font-weight: 500; color: var(--tmid);
+  transition: background .15s, color .15s; margin-bottom: 2px;
+}
+.nav-link:hover  { background: var(--bg3); color: var(--text); }
+.nav-link.active { background: var(--gold-dim); color: var(--gold-light); border: 1px solid var(--gold-border); }
+.nav-link .icon  { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+.sidebar-bottom { padding: 14px 10px; border-top: 1px solid var(--border); }
+.profile-row {
+  display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px;
+  cursor: pointer; transition: background .15s; position: relative;
+}
+.profile-row:hover { background: var(--bg3); }
+
+.avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+  color: #0c0c00; font-family: var(--font-d); font-size: 16px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.profile-name  { font-size: 13px; font-weight: 500; color: var(--text); }
+.profile-email { font-size: 11px; color: #7a9870; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 135px; }
+.logout-btn {
+  width: 100%; margin-top: 10px; padding: 9px;
+  background: rgba(224,85,85,0.08); color: #f09090;
+  border: 1px solid rgba(224,85,85,0.2); border-radius: 8px;
+  font-family: var(--font-b); font-size: 13px; font-weight: 500; cursor: pointer; transition: background .2s;
+}
+.logout-btn:hover { background: rgba(224,85,85,0.18); }
+
+/* ── MAIN ── */
+.main { margin-left: var(--sidebar-w); padding: 32px 32px 60px; min-height: 100vh; }
+
+/* ── TOPBAR ── */
+.topbar {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px;
+}
+.topbar-left h1 { font-family: var(--font-d); font-size: 26px; color: var(--text); }
+.topbar-left p  { font-size: 13px; color: var(--tdim); margin-top: 3px; }
+.back-btn {
+  display: flex; align-items: center; gap: 6px; padding: 9px 18px;
+  background: var(--gold-dim); border: 1px solid var(--gold-border);
+  border-radius: 50px; color: var(--gold-light); font-size: 13px; font-weight: 500;
+  text-decoration: none; transition: background .2s;
+}
+.back-btn:hover { background: rgba(201,168,76,0.22); }
+
+/* ── VIEW TOGGLE ── */
+.view-toggle {
+  display: flex; gap: 6px; margin-bottom: 22px;
+}
+.vtab {
+  padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 500;
+  cursor: pointer; border: 1px solid var(--border2); background: var(--card); color: var(--tmid);
+  transition: all .15s;
+}
+.vtab.active { background: var(--gold-dim); border-color: var(--gold-border); color: var(--gold-light); }
+.vtab:hover:not(.active) { background: var(--bg3); color: var(--text); }
+
+/* ── STAT CARDS ── */
+.stat-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 22px; }
+.scard {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px;
+  position: relative; overflow: hidden; transition: border-color .2s;
+}
+.scard:hover { border-color: var(--gold-border); }
+.scard-stripe { position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.scard-label { font-size: 11px; color: var(--gold); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; margin-top: 6px; }
+.scard-val   { font-family: var(--font-d); font-size: 24px; color: var(--text); }
+.scard-sub   { font-size: 11px; color: var(--tdim); margin-top: 4px; }
+
+/* ── CHART CARDS ── */
+.charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; margin-bottom: 18px; }
+.chart-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+  overflow: hidden; transition: border-color .2s;
+}
+.chart-card:hover { border-color: var(--border2); }
+.chart-header {
+  padding: 16px 20px; background: var(--green-dark);
+  border-bottom: 1px solid rgba(201,168,76,0.15);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.chart-title { font-family: var(--font-d); font-size: 16px; color: var(--gold-light); }
+.chart-badge {
+  font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px;
+  background: var(--gold-dim); color: var(--gold-light); border: 1px solid var(--gold-border);
+}
+.chart-body { padding: 20px; }
+.chart-wrap { position: relative; }
+
+/* ── TOP CATEGORIES LIST ── */
+.cat-list { padding: 0 20px 20px; }
+.cat-row {
+  display: flex; align-items: center; gap: 12px; padding: 10px 0;
+  border-bottom: 1px solid var(--border); animation: rowIn .25s ease;
+}
+@keyframes rowIn { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:none} }
+.cat-row:last-child { border-bottom: none; }
+.cat-rank { font-family: var(--font-d); font-size: 16px; color: var(--tdim); width: 22px; flex-shrink: 0; }
+.cat-ico  { font-size: 20px; flex-shrink: 0; }
+.cat-info { flex: 1; }
+.cat-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.cat-pct  { font-size: 11px; color: var(--tdim); margin-top: 2px; }
+.cat-bar-wrap { width: 80px; }
+.cat-bar-track { height: 5px; background: var(--border2); border-radius: 3px; overflow: hidden; }
+.cat-bar-fill  { height: 100%; border-radius: 3px; transition: width .6s ease; }
+.cat-amt { font-size: 13px; font-weight: 600; color: var(--gold-light); min-width: 70px; text-align: right; flex-shrink: 0; }
+
+/* EMPTY */
+.empty { text-align: center; padding: 48px 20px; color: var(--tdim); }
+.empty-ico { font-size: 38px; margin-bottom: 10px; }
+.empty p   { font-size: 14px; }
+.empty a   { color: var(--gold); text-decoration: none; font-weight: 600; }
+
+/* MOBILE */
+.menu-btn {
+  display: none; position: fixed; top: 14px; left: 14px; z-index: 200;
+  width: 38px; height: 38px; background: var(--green-dark);
+  border: 1px solid var(--gold-border); border-radius: 9px;
+  align-items: center; justify-content: center; color: var(--gold-light); font-size: 18px; cursor: pointer;
+}
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 90; }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 22px; right: 24px;
+  background: var(--gold); color: #0c0c00;
+  padding: 11px 20px; border-radius: 12px; font-size: 13px; font-weight: 600;
+  z-index: 999; transform: translateY(50px); opacity: 0;
+  transition: transform .35s cubic-bezier(.175,.885,.32,1.275), opacity .35s;
+  pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+@media (max-width:1024px) { .charts-grid { grid-template-columns: 1fr; } .stat-row { grid-template-columns: 1fr 1fr; } }
+@media (max-width:700px)  {
+  .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay.open { display: block; } .main { margin-left: 0; padding: 72px 16px 40px; }
+  .menu-btn { display: flex; } .stat-row { grid-template-columns: 1fr; }
+  .topbar { flex-direction: column; align-items: flex-start; gap: 12px; }
+}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" onclick="toggleMenu()">☰</button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleMenu()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <a class="sidebar-logo" href="welcome.html"><span class="logo-dot"></span>BudgetTracker</a>
+  <nav class="nav-section">
+    <div class="nav-label">Main</div>
+   <a href="index.html"          class="nav-link"><span class="icon">🏠</span> <span data-i18n="dashboard">Dashboard</span></a>
+<a href="income-expense.html" class="nav-link"><span class="icon">📊</span> <span data-i18n="income_expense">Income vs Expense</span></a>
+<a href="monthly.html"        class="nav-link"><span class="icon">📅</span> <span data-i18n="monthly_summary">Monthly Report</span></a>
+<a href="barchart.html"       class="nav-link active"><span class="icon">📈</span> <span data-i18n="bar_chart">Bar Chart</span></a>
+<a href="savings-goals.html"  class="nav-link"><span class="icon">🏆</span> <span data-i18n="savings_goals">Savings Goals</span></a>
+<a href="bill-reminders.html" class="nav-link"><span class="icon">🔔</span> <span data-i18n="bill_reminders">Bill Reminders</span></a>
+<a href="pdf-report.html" class="nav-link"><span class="icon">📄</span> <span data-i18n="pdf_report">PDF Report</span></a>
+
+<a class="nav-link" onclick="HelpTour.start()" style="cursor:pointer;">
+  <span class="icon">🩵</span> Help Tour
+</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="profile-row" onclick="toggleProfile(event)" style="cursor:pointer;" title="View Profile">
+      <div class="avatar" id="avatarLetter">U</div>
+      <div>
+        <div class="profile-name"  id="profileName">User</div>
+        <div class="profile-email" id="profileEmail">—</div>
+      </div>
+    </div>
+      <span style="margin-left:auto;font-size:11px;color:#7a9870;">▲</span>
+    </div>
+  </div>
+</aside>
+
+<!-- PROFILE POPUP -->
+<div id="profilePopup" style="display:none;position:fixed;bottom:75px;left:10px;width:220px;background:#1a2a1a;border:1px solid rgba(201,168,76,0.25);border-radius:14px;padding:16px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+  <div style="font-size:14px;font-weight:700;color:#e8f0e0;margin-bottom:3px;" id="popupName">User</div>
+  <div style="font-size:11px;color:#7a9870;margin-bottom:12px;" id="popupEmail">—</div>
+  <div style="height:1px;background:#1f2f1f;margin-bottom:12px;"></div>
+  <a href="profile.html" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);border-radius:9px;color:#e8c86a;font-size:12px;font-weight:600;text-decoration:none;margin-bottom:6px;">👤 View Profile</a>
+  <a href="settings.html" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);border-radius:9px;color:#e8c86a;font-size:12px;font-weight:600;text-decoration:none;margin-bottom:6px;">⚙️ Budget & Settings</a>
+  <button onclick="logout()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(224,85,85,0.1);border:1px solid rgba(224,85,85,0.2);border-radius:9px;color:#f09090;font-size:12px;font-weight:600;cursor:pointer;">🚪 Sign Out</button>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>📈 Bar Chart Analysis</h1>
+      <p id="subDate">Expense breakdown by category</p>
+    </div>
+    <a href="index.html" class="back-btn">← Back to Dashboard</a>
+  </div>
+
+  <!-- VIEW TOGGLE -->
+  <div class="view-toggle">
+    <div class="vtab active" id="tab-cat" onclick="switchTab('cat')" data-i18n="expense_breakdown">By Category</div>
+<div class="vtab" id="tab-month" onclick="switchTab('month')" data-i18n="monthly_expenses">By Month</div>
+<div class="vtab" id="tab-week"  onclick="switchTab('week')" data-i18n="this_month">Last 7 Days</div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stat-row">
+    <div class="scard">
+      <div class="scard-stripe" style="background:linear-gradient(90deg,var(--gold),var(--gold-light));"></div>
+      <div class="scard-label" data-i18n="total_expenses">Total Tracked</div>
+      <div class="scard-val" id="sc-total">₹0</div>
+      <div class="scard-sub" id="sc-count">0 expenses</div>
+    </div>
+    <div class="scard">
+      <div class="scard-stripe" style="background:linear-gradient(90deg,var(--green),var(--green-bright));"></div>
+      <div class="scard-label" data-i18n="category">Top Category</div>
+      <div class="scard-val" id="sc-top">—</div>
+      <div class="scard-sub" id="sc-top-amt">no data</div>
+    </div>
+    <div class="scard">
+      <div class="scard-stripe" style="background:linear-gradient(90deg,#e05555,#f08080);"></div>
+      <div class="scard-label" data-i18n="spent">Highest Expense</div>
+      <div class="scard-val" id="sc-max">—</div>
+      <div class="scard-sub" id="sc-max-name">no data</div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title" id="chartTitle">Expenses by Category</span>
+        <span class="chart-badge" id="chartBadge">All Time</span>
+      </div>
+      <div class="chart-body">
+        <div class="chart-wrap" style="height:320px;">
+          <canvas id="mainChart"></canvas>
+        </div>
+        <div id="noData" class="empty" style="display:none;">
+          <div class="empty-ico">📭</div>
+          <p>No expenses yet. <a href="index.html">Add one →</a></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title" data-i18n="category_breakdown">Category Breakdown</span>
+      </div>
+      <div class="chart-body" style="padding-bottom:8px;">
+        <div class="chart-wrap" style="height:180px; margin-bottom:8px;">
+          <canvas id="pieChart"></canvas>
+        </div>
+      </div>
+      <div class="cat-list" id="catList"></div>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+<script src="userdata.js"></script>
+<script>
+  if (!localStorage.getItem('token'))
+   window.location.href = 'login.html';
+
+  const expenses = JSON.parse(localStorage.getItem('bt_expenses') || '[]');
+  let activeTab  = 'cat';
+  let mainChart  = null, pieChart = null;
+
+  const ICONS  = {Food:'🛒',Transport:'🚌',Housing:'🏠',Health:'💊',Shopping:'🛍️',Entertainment:'🎬',Bills:'💡',Education:'📚',Other:'📌'};
+  const COLORS = ['#c9a84c','#52b052','#e8c86a','#3a8c3a','#f5d87a','#2d6a2d','#e05555','#7a9870','#e8a030'];
+
+  function init() {
+    const name  = localStorage.getItem('userName')  || 'User';
+    const email = localStorage.getItem('userEmail') || '';
+    document.getElementById('avatarLetter').textContent = name.charAt(0).toUpperCase();
+    document.getElementById('profileName').textContent  = name;
+    document.getElementById('profileEmail').textContent = email;
+    const lang = localStorage.getItem('bt_language') || 'en';
+const localeMap = {en:'en-IN',hi:'hi-IN',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',ar:'ar-SA',fr:'fr-FR',de:'de-DE',es:'es-ES',pt:'pt-BR',ru:'ru-RU'};
+const locale = localeMap[lang] || 'en-IN';
+document.getElementById('subDate').textContent =
+      new Date().toLocaleDateString(locale,{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    renderStats(); renderCharts();
+  }
+
+function fmt(n) {
+  const lang = localStorage.getItem('bt_language') || 'en';
+  const localeMap = {en:'en-IN',hi:'hi-IN',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',ar:'ar-SA',fr:'fr-FR',de:'de-DE',es:'es-ES',pt:'pt-BR',ru:'ru-RU'};
+  const locale = localeMap[lang] || 'en-IN';
+  const sym = localStorage.getItem('bt_currency_sym') || '₹';
+return sym+Number(n).toLocaleString(locale,{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+  function renderStats() {
+    const total = expenses.reduce((s,e)=>s+e.amount,0);
+    const catMap = {};
+    expenses.forEach(e=>{ catMap[e.category]=(catMap[e.category]||0)+e.amount; });
+    const sorted = Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
+    const top    = sorted[0];
+    const maxExp = expenses.length ? expenses.reduce((a,b)=>a.amount>b.amount?a:b) : null;
+
+    document.getElementById('sc-total').textContent   = fmt(total);
+    document.getElementById('sc-count').textContent   = expenses.length+' expense'+(expenses.length!==1?'s':'');
+    document.getElementById('sc-top').textContent     = top ? top[0] : '—';
+    document.getElementById('sc-top-amt').textContent = top ? fmt(top[1]) : 'no data';
+    document.getElementById('sc-max').textContent     = maxExp ? fmt(maxExp.amount) : '—';
+    document.getElementById('sc-max-name').textContent= maxExp ? maxExp.title : 'no data';
+  }
+
+  function renderCharts() {
+    const hasData = expenses.length > 0;
+    document.getElementById('noData').style.display = hasData ? 'none' : 'block';
+    document.getElementById('mainChart').style.display = hasData ? 'block' : 'none';
+
+    let labels=[], values=[], colors=[];
+
+    if (activeTab === 'cat') {
+      const catMap={};
+      expenses.forEach(e=>{ catMap[e.category]=(catMap[e.category]||0)+e.amount; });
+      const sorted=Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
+      labels=sorted.map(x=>x[0]); values=sorted.map(x=>x[1]);
+      colors=labels.map((_,i)=>COLORS[i%COLORS.length]);
+      document.getElementById('chartTitle').textContent='Expenses by Category';
+      document.getElementById('chartBadge').textContent='All Time';
+      renderCatList(sorted);
+      renderPie(labels, values, colors);
+
+    } else if (activeTab === 'month') {
+      const monthMap={};
+      expenses.forEach(e=>{
+        const d=new Date(e.date+'T00:00:00');
+        const lang = localStorage.getItem('bt_language') || 'en';
+const localeMap = {en:'en-IN',hi:'hi-IN',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',ar:'ar-SA',fr:'fr-FR',de:'de-DE',es:'es-ES',pt:'pt-BR',ru:'ru-RU'};
+const locale = localeMap[lang] || 'en-IN';
+const key=d.toLocaleDateString(locale,{month:'short',year:'numeric'});
+        monthMap[key]=(monthMap[key]||0)+e.amount;
+      });
+      const entries=Object.entries(monthMap).slice(-6);
+      labels=entries.map(x=>x[0]); values=entries.map(x=>x[1]);
+      colors=labels.map((_,i)=>COLORS[i%COLORS.length]);
+      document.getElementById('chartTitle').textContent='Monthly Expense Trend';
+      document.getElementById('chartBadge').textContent='Last 6 Months';
+      renderCatList([]); renderPie([],[],[]);
+
+    } else {
+      const days=[],totals=[];
+      for(let i=6;i>=0;i--){
+        const d=new Date(); d.setDate(d.getDate()-i);
+        const key=d.toISOString().split('T')[0];
+        const lang2 = localStorage.getItem('bt_language') || 'en';
+const localeMap2 = {en:'en-IN',hi:'hi-IN',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',ar:'ar-SA',fr:'fr-FR',de:'de-DE',es:'es-ES',pt:'pt-BR',ru:'ru-RU'};
+const locale2 = localeMap2[lang2] || 'en-IN';
+days.push(d.toLocaleDateString(locale2,{weekday:'short',day:'numeric'}));
+        totals.push(expenses.filter(e=>e.date===key).reduce((s,e)=>s+e.amount,0));
+      }
+      labels=days; values=totals; colors=totals.map(v=>v>0?'#c9a84c':'#1f2f1f');
+      document.getElementById('chartTitle').textContent='Daily Spending (Last 7 Days)';
+      document.getElementById('chartBadge').textContent='This Week';
+      renderCatList([]); renderPie([],[],[]);
+    }
+
+    if (mainChart) mainChart.destroy();
+    if (!hasData) return;
+    mainChart = new Chart(document.getElementById('mainChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Amount',
+          data: values,
+          backgroundColor: colors.map(c=>c+'bb'),
+          borderColor: colors,
+          borderWidth: 1.5,
+          borderRadius: 8,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: c => ' '+fmt(c.raw) } }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(255,255,255,0.03)' },
+            ticks: { color: '#7a9870', font: { family:"'DM Sans',sans-serif", size: 12 },maxRotation: 0, minRotation: 0  }
+          },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: { color: '#7a9870', font: { family:"'DM Sans',sans-serif", size: 11 }, callback: v => '₹'+v }
+          }
+        }
+      }
+    });
+  }
+
+  function renderPie(labels, values, colors) {
+    if (pieChart) pieChart.destroy();
+    if (!labels.length) return;
+    pieChart = new Chart(document.getElementById('pieChart'), {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: '#141f14', hoverOffset: 6 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: c => ' '+c.label+': '+fmt(c.raw) } }
+        }
+      }
+    });
+  }
+
+  function renderCatList(sorted) {
+    const box = document.getElementById('catList');
+    if (!sorted.length) { box.innerHTML = ''; return; }
+    const total = sorted.reduce((s,x)=>s+x[1],0);
+    box.innerHTML = sorted.slice(0,5).map((x,i) => `
+      <div class="cat-row">
+        <div class="cat-rank">${i+1}</div>
+        <div class="cat-ico">${ICONS[x[0]]||'📌'}</div>
+        <div class="cat-info">
+          <div class="cat-name">${x[0]}</div>
+          <div class="cat-pct">${Math.round(x[1]/total*100)}% of total</div>
+        </div>
+        <div class="cat-bar-wrap">
+          <div class="cat-bar-track">
+            <div class="cat-bar-fill" style="width:${Math.round(x[1]/total*100)}%;background:${COLORS[i%COLORS.length]};"></div>
+          </div>
+        </div>
+        <div class="cat-amt">${fmt(x[1])}</div>
+      </div>`).join('');
+  }
+
+  function switchTab(tab) {
+    activeTab = tab;
+    ['cat','month','week'].forEach(t => {
+      document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    });
+    renderCharts();
+  }
+
+  function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
+  function logout()     { localStorage.removeItem('token'); window.location.href='login.html'; }
+function toggleProfile(e) {
+  e.stopPropagation();
+  const popup = document.getElementById('profilePopup');
+  if (!popup) return;
+  const isOpen = popup.style.display === 'block';
+  popup.style.display = isOpen ? 'none' : 'block';
+  const name  = localStorage.getItem('userName') || localStorage.getItem('name') || 'User';
+  const email = localStorage.getItem('userEmail') || localStorage.getItem('email') || '—';
+  const pn = document.getElementById('popupName');  if (pn) pn.textContent  = name;
+  const pe = document.getElementById('popupEmail'); if (pe) pe.textContent = email;
+}
+document.addEventListener('click', function() {
+  const popup = document.getElementById('profilePopup');
+  if (popup) popup.style.display = 'none';
+});
+
+  init();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<script src="help-tour.js"></script>
+</body>
+</html>

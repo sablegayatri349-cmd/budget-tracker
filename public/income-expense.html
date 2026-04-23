@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="theme.js"></script>
+<script src="translations.js"></script>
+<script src="language.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Income vs Expense – BudgetTracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:          #080f08;
+  --bg2:         #0c140c;
+  --bg3:         #111a11;
+  --card:        #141f14;
+  --card2:       #1a2a1a;
+  --border:      #1f2f1f;
+  --border2:     #2a402a;
+  --green-dark:  #1a3d1a;
+  --green:       #2d6a2d;
+  --green-mid:   #3a8c3a;
+  --green-bright:#52b052;
+  --gold:        #c9a84c;
+  --gold-light:  #e8c86a;
+  --gold-bright: #f5d87a;
+  --gold-dim:    rgba(201,168,76,0.12);
+  --gold-border: rgba(201,168,76,0.25);
+  --red:         #e05555;
+  --red-dim:     rgba(224,85,85,0.1);
+  --text:        #e8f0e0;
+  --tmid:        #7a9870;
+  --tdim:        #3a5030;
+  --sidebar-w:   235px;
+  --font-d:      'DM Serif Display', serif;
+  --font-b:      'DM Sans', sans-serif;
+}
+body { font-family: var(--font-b); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w);
+  background: var(--bg2); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; z-index: 100; transition: transform .3s;
+}
+.sidebar-logo {
+  padding: 24px 20px 20px; border-bottom: 1px solid var(--border);
+  font-family: var(--font-d); font-size: 20px; color: var(--text);
+  display: flex; align-items: center; gap: 9px; text-decoration: none;
+}
+.logo-dot { width: 9px; height: 9px; background: var(--gold); border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 10px rgba(201,168,76,0.6); }
+.nav-section { flex: 1; padding: 16px 10px; overflow-y: auto; }
+.nav-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; color: var(--tdim); padding: 0 10px; margin: 16px 0 6px; }
+.nav-link {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px;
+  text-decoration: none; font-size: 13.5px; font-weight: 500; color: var(--tmid);
+  transition: background .15s, color .15s; margin-bottom: 2px;
+}
+.nav-link:hover  { background: var(--bg3); color: var(--text); }
+.nav-link.active { background: var(--gold-dim); color: var(--gold-light); border: 1px solid var(--gold-border); }
+.nav-link .icon  { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+.sidebar-bottom { padding: 14px 10px; border-top: 1px solid var(--border); }
+.profile-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px; cursor: pointer; transition: background .15s; }
+.profile-row:hover { background: var(--bg3); }
+
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: #0c0c00; font-family: var(--font-d); font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.profile-name  { font-size: 13px; font-weight: 500; color: var(--text); }
+.profile-email { font-size: 11px; color:#7a9870; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 135px; }
+.logout-btn { width: 100%; margin-top: 10px; padding: 9px; background: var(--red-dim); color: #f09090; border: 1px solid rgba(224,85,85,0.2); border-radius: 8px; font-family: var(--font-b); font-size: 13px; font-weight: 500; cursor: pointer; transition: background .2s; }
+.logout-btn:hover { background: rgba(224,85,85,0.18); }
+
+/* ── MAIN ── */
+.main { margin-left: var(--sidebar-w); padding: 32px 32px 60px; min-height: 100vh; }
+
+/* TOPBAR */
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+.topbar-left h1 { font-family: var(--font-d); font-size: 26px; color: var(--text); }
+.topbar-left p  { font-size: 13px; color: #7a9870; margin-top: 3px; }
+.back-btn { display: flex; align-items: center; gap: 6px; padding: 9px 18px; background: var(--gold-dim); border: 1px solid var(--gold-border); border-radius: 50px; color: var(--gold-light); font-size: 13px; font-weight: 500; text-decoration: none; transition: background .2s; }
+.back-btn:hover { background: rgba(201,168,76,0.22); }
+
+/* STAT CARDS */
+.stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px; }
+.scard { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; position: relative; overflow: hidden; transition: border-color .2s; }
+.scard:hover { border-color: var(--gold-border); }
+.scard-stripe { position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.scard-label { font-size: 11px; color: var(--gold); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; margin-top: 6px; }
+.scard-val   { font-family: var(--font-d); font-size: 24px; color: #ffffff; }
+.scard-sub   { font-size: 11px; color:#7a9870; margin-top: 4px; }
+
+/* BODY GRID */
+.body-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+
+/* CHART SECTION */
+.chart-section { display: flex; flex-direction: column; gap: 18px; }
+
+/* CARD */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.card-header { padding: 15px 20px; background: var(--green-dark); border-bottom: 1px solid rgba(201,168,76,0.15); display: flex; align-items: center; justify-content: space-between; }
+.card-title  { font-family: var(--font-d); font-size: 16px; color: var(--gold-light); }
+.card-badge  { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: var(--gold-dim); color: var(--gold-light); border: 1px solid var(--gold-border); }
+.card-body   { padding: 20px; }
+
+/* VIEW TABS */
+.view-tabs { display: flex; gap: 6px; }
+.vtab { padding: 5px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border2); background: var(--card2); color: var(--tmid); transition: all .15s; }
+.vtab.on { background: var(--gold-dim); border-color: var(--gold-border); color: var(--gold-light); }
+.vtab:hover:not(.on) { color: var(--text); }
+
+.chart-wrap { position: relative; height: 280px; }
+
+/* TRANSACTION LIST */
+.txn-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.txn-tabs   { display: flex; gap: 6px; }
+.ttab { padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border2); background: var(--card2); color: var(--tmid); transition: all .15s; }
+.ttab.on-inc { background: rgba(82,176,82,0.15); border-color: rgba(82,176,82,0.3); color: var(--green-bright); }
+.ttab.on-exp { background: var(--red-dim); border-color: rgba(224,85,85,0.3); color: var(--red); }
+
+.txn-rows { max-height: 260px; overflow-y: auto; margin-top: 12px; }
+.txn-row {
+  display: flex; align-items: center; gap: 12px; padding: 10px 0;
+  border-bottom: 1px solid var(--border); animation: rowIn .2s ease;
+}
+@keyframes rowIn { from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none} }
+.txn-row:last-child { border-bottom: none; }
+.txn-ico  { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.txn-info { flex: 1; }
+.txn-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.txn-date { font-size: 11px; color: #7a9870; margin-top: 1px; }
+.txn-amt  { font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.txn-del  { background: none; border: none; color: var(--tdim); cursor: pointer; padding: 4px 6px; border-radius: 6px; font-size: 12px; transition: all .15s; flex-shrink: 0; }
+.txn-del:hover { background: var(--red-dim); color: var(--red); }
+.txn-empty { text-align: center; padding: 28px 0; color: var(--tdim); font-size: 13px; }
+
+/* RIGHT COLUMN */
+.right-col { display: flex; flex-direction: column; gap: 18px; }
+
+/* ADD INCOME FORM */
+.add-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.add-header { padding: 14px 20px; background: var(--green-dark); border-bottom: 1px solid rgba(201,168,76,0.15); font-family: var(--font-d); font-size: 16px; color: var(--gold-light); }
+.add-body   { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+.field label { font-size: 11px; font-weight: 600; color: #7a9870; text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 5px; }
+.field input, .field select {
+  width: 100%; padding: 10px 12px; background: var(--bg3);
+  border: 1px solid var(--border2); border-radius: 9px;
+  font-family: var(--font-b); font-size: 13px; color: var(--text); outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.field input::placeholder { color: var(--tdim); }
+.field input:focus, .field select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-dim); }
+.field select option { background: var(--bg3); }
+.btn-add-inc {
+  width: 100%; padding: 11px; border: none; border-radius: 9px;
+  font-family: var(--font-b); font-size: 14px; font-weight: 600; cursor: pointer;
+  background: linear-gradient(135deg, var(--green), var(--green-mid));
+  color: #e8f0e0; transition: opacity .2s, transform .15s;
+}
+.btn-add-inc:hover { opacity: .88; transform: translateY(-1px); }
+
+/* SUMMARY BOX */
+.summary-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+.sum-title { font-family: var(--font-d); font-size: 15px; color: var(--text); margin-bottom: 14px; }
+.sum-row   { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-top: 1px solid var(--border); font-size: 13px; }
+.sum-row:first-of-type { border-top: none; }
+.sum-label { color: var(--tmid); display: flex; align-items: center; gap: 6px; }
+.sum-val   { font-family: var(--font-d); font-size: 17px; }
+
+/* PROGRESS BAR */
+.prog-bar { height: 6px; background: var(--border2); border-radius: 3px; overflow: hidden; margin-top: 14px; }
+.prog-fill { height: 100%; border-radius: 3px; transition: width .6s ease; }
+.prog-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--tdim); margin-top: 6px; }
+
+/* MOBILE */
+.menu-btn { display: none; position: fixed; top: 14px; left: 14px; z-index: 200; width: 38px; height: 38px; background: var(--green-dark); border: 1px solid var(--gold-border); border-radius: 9px; align-items: center; justify-content: center; color: var(--gold-light); font-size: 18px; cursor: pointer; }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 90; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 22px; right: 24px; background: var(--gold); color: #0c0c00; padding: 11px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; z-index: 999; transform: translateY(50px); opacity: 0; transition: transform .35s cubic-bezier(.175,.885,.32,1.275), opacity .35s; pointer-events: none; }
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.err  { background: var(--red); color: #fff; }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+@media (max-width:1024px) { .stats-row { grid-template-columns: repeat(2,1fr); } }
+@media (max-width:860px)  { .body-grid { grid-template-columns: 1fr; } }
+@media (max-width:700px)  {
+  .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay.open { display: block; } .main { margin-left: 0; padding: 72px 16px 40px; }
+  .menu-btn { display: flex; } .stats-row { grid-template-columns: 1fr 1fr; }
+  .topbar { flex-direction: column; align-items: flex-start; gap: 12px; }
+}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" onclick="toggleMenu()">☰</button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleMenu()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <a class="sidebar-logo" href="welcome.html"><span class="logo-dot"></span>BudgetTracker</a>
+  <nav class="nav-section">
+    <div class="nav-label">Main</div>
+    <a href="index.html"          class="nav-link"><span class="icon">🏠</span> <span data-i18n="dashboard">Dashboard</span></a>
+<a href="income-expense.html" class="nav-link active"><span class="icon">📊</span> <span data-i18n="income_expense">Income vs Expense</span></a>
+<a href="monthly.html"        class="nav-link"><span class="icon">📅</span> <span data-i18n="monthly_summary">Monthly Report</span></a>
+<a href="barchart.html"       class="nav-link"><span class="icon">📈</span> <span data-i18n="bar_chart">Bar Chart</span></a>
+<a href="savings-goals.html"  class="nav-link"><span class="icon">🏆</span> <span data-i18n="savings_goals">Savings Goals</span></a>
+<a href="bill-reminders.html" class="nav-link"><span class="icon">🔔</span> <span data-i18n="bill_reminders">Bill Reminders</span></a>
+<a href="pdf-report.html"     class="nav-link"><span class="icon">📄</span> <span data-i18n="pdf_report">PDF Report</span></a>
+<a class="nav-link" onclick="HelpTour.start()" style="cursor:pointer;">
+  <span class="icon">🩵</span> Help Tour
+</a>
+ </nav>
+  <div class="sidebar-bottom">
+    <div class="profile-row" onclick="toggleProfile(event)" style="cursor:pointer;" title="View Profile">
+      <div class="avatar" id="avatarLetter">U</div>
+      <div>
+        <div class="profile-name"  id="profileName">User</div>
+        <div class="profile-email" id="profileEmail">—</div>
+      </div>
+    </div>
+      <span style="margin-left:auto;font-size:11px;color:#7a9870;">▲</span>
+    </div>
+  </div>
+</aside>
+
+<!-- PROFILE POPUP -->
+<div id="profilePopup" style="display:none;position:fixed;bottom:75px;left:10px;width:220px;background:#1a2a1a;border:1px solid rgba(201,168,76,0.25);border-radius:14px;padding:16px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+  <div style="font-size:14px;font-weight:700;color:#e8f0e0;margin-bottom:3px;" id="popupName">User</div>
+  <div style="font-size:11px;color:#7a9870;margin-bottom:12px;" id="popupEmail">—</div>
+  <div style="height:1px;background:#1f2f1f;margin-bottom:12px;"></div>
+  <a href="profile.html" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);border-radius:9px;color:#e8c86a;font-size:12px;font-weight:600;text-decoration:none;margin-bottom:6px;">👤 View Profile</a>
+  <a href="settings.html" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);border-radius:9px;color:#e8c86a;font-size:12px;font-weight:600;text-decoration:none;margin-bottom:6px;">⚙️ Budget & Settings</a>
+  <button onclick="logout()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(224,85,85,0.1);border:1px solid rgba(224,85,85,0.2);border-radius:9px;color:#f09090;font-size:12px;font-weight:600;cursor:pointer;">🚪 Sign Out</button>
+</div>
+<main class="main">
+
+  <div class="topbar">
+    <div class="topbar-left">
+  <h1>📊 <span data-i18n="income_expense">Income vs Expense</span></h1>
+<p data-i18n="Compare your earnings and spending side by side">Compare your earnings and spending side by side</p>
+</div>
+<a href="index.html" class="back-btn">← <span data-i18n="back">Back to Dashboard</span></a>  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stats-row">
+    <div class="scard">
+      <div class="scard-stripe" style="background:linear-gradient(90deg,var(--green),var(--green-bright));"></div>
+      <div class="scard-label" data-i18n="total_income">Total Income</div>
+      <div class="scard-val" id="sc-income" >₹0</div>
+      <div class="scard-sub" id="sc-inc-count">0 <span data-i18n="entries">entries</span></div>
+    </div>
+    <div class="scard">
+      <div class="scard-stripe" style="background:linear-gradient(90deg,var(--red),#f08080);"></div>
+      <div class="scard-label" data-i18n="total_expenses">Total Expenses</div>
+      <div class="scard-val" id="sc-expense" >₹0</div>
+      <div class="scard-sub" id="sc-exp-count">0 <span data-i18n="entries">entries</span></div>
+    </div>
+    <div class="scard">
+      <div class="scard-stripe" style="background:linear-gradient(90deg,var(--gold),var(--gold-light));"></div>
+      <div class="scard-label" data-i18n="net_balance">Net Balance</div>
+      <div class="scard-val" id="sc-net">₹0</div>
+      <div class="scard-sub" id="sc-net-sub" data-i18n="surplus ">income − expenses</div>
+    </div>
+    <div class="scard">
+      <div class="scard-stripe" style="background:linear-gradient(90deg,var(--green-dark),var(--green));"></div>
+      <div class="scard-label" data-i18n="savings_rate">Savings Rate</div>
+      <div class="scard-val" id="sc-rate">0%</div>
+      <div class="scard-sub" data-i18n="of income saved">of income saved</div>
+    </div>
+  </div>
+
+  <div class="body-grid">
+
+    <!-- LEFT: CHARTS + LIST -->
+    <div class="chart-section">
+
+      <!-- MAIN CHART -->
+      <div class="card">
+        <div class="card-header">
+         <span class="card-title" data-i18n=" Income & Expense">Income vs Expense</span>
+            <div class="view-tabs">
+         <div class="vtab on" id="vt-month" onclick="switchView('month')" data-i18n="monthly">Monthly</div>
+         <div class="vtab"    id="vt-week"  onclick="switchView('week')" data-i18n="weekly">Weekly</div>
+        </div>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+          <div id="noChart" data-i18n="add_to_see_chart" style="text-align:center;padding:40px;color:var(--tdim);font-size:13px;display:none;">
+         Add income and expenses to see your chart
+         </div>
+        </div>
+      </div>
+
+      <!-- TRANSACTION LIST -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title" data-i18n="all_transactions">All Transactions</span>
+          <div class="txn-tabs">
+            <div class="ttab on-inc" id="tt-all" onclick="switchTxnTab('all')" data-i18n="all">All</div>
+<div class="ttab" id="tt-inc" onclick="switchTxnTab('inc')" data-i18n="income">Income</div>
+<div class="ttab" id="tt-exp" onclick="switchTxnTab('exp')" data-i18n="expense">Expenses</div>
+          </div>
+        </div>
+        <div class="card-body" style="padding-top:0;">
+          <div class="txn-rows" id="txnRows"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right-col">
+
+      <!-- ADD INCOME FORM -->
+      <div class="add-card">
+        <div class="add-header">➕ <span data-i18n="income">Income</span></div>
+        <div class="add-body">
+          <div class="field">
+  <label data-i18n="source">Source</label>
+  <input type="text" id="inc-title" data-i18n-placeholder="source_placeholder" placeholder="e.g. Salary, Freelance…"/>
+</div>
+<div class="field">
+  <label data-i18n="amount">Amount (₹)</label>
+  <input type="number" id="inc-amount" placeholder="0" min="0"/>
+</div>
+<div class="field">
+  <label data-i18n="category">Category</label>
+  <select id="inc-cat">
+    <option value="Salary"    data-i18n="Salary">💼 Salary</option>
+    <option value="Freelance" data-i18n="Freelance">💻 Freelance</option>
+    <option value="Business"  data-i18n="Business">🏢 Business</option>
+    <option value="Investment" data-i18n="Investment">📈 Investment</option>
+    <option value="Gift"      data-i18n="Gift">🎁 Gift</option>
+    <option value="Other"     data-i18n="Other_income">📌 Other Income</option>
+  </select>
+</div>
+<div class="field">
+  <label data-i18n="date">Date</label>
+  <input type="date" id="inc-date"/>
+</div>
+<button class="btn-add-inc" onclick="addIncome()" data-i18n="add_income">+ Add Income</button>
+        </div>
+      </div>
+
+      <!-- SUMMARY -->
+      <div class="summary-card">
+        <div class="sum-title">📋 <span data-i18n="month_summary">Month Summary</span></div>
+<div class="sum-row">
+  <span class="sum-label">💚 <span data-i18n="income">Income</span></span>
+  <span class="sum-val" id="sum-inc" style="color:var(--green-bright);">₹0</span>
+</div>
+<div class="sum-row">
+  <span class="sum-label">🔴 <span data-i18n="expenses_label">Expenses</span></span>
+  <span class="sum-val" id="sum-exp" style="color:var(--red);">₹0</span>
+</div>
+<div class="sum-row">
+  <span class="sum-label">🏦 <span data-i18n="net_saved">Net Saved</span></span>
+  <span class="sum-val" id="sum-net" style="color:var(--gold-light);">₹0</span>
+</div>
+<div class="prog-bar">
+  <div class="prog-fill" id="progFill" style="background:var(--green-bright);width:0%;"></div>
+</div>
+<div class="prog-label">
+  <span data-i18n="expenses_label">Expenses</span>
+  <span id="progPct">0<span data-i18n="percent_of_income">% of income</span></span>
+</div>
+
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+<script src="userdata.js"></script>
+<script>
+  if (!localStorage.getItem('token')) window.location.href = 'login.html';
+
+  let incomes  = JSON.parse(localStorage.getItem('bt_incomes')  || '[]');
+  let expenses = JSON.parse(localStorage.getItem('bt_expenses') || '[]');
+  let chartView = 'month';
+  let txnTab    = 'all';
+  let mainChart = null;
+
+  const INC_ICONS = {Salary:'💼',Freelance:'💻',Business:'🏢',Investment:'📈',Gift:'🎁','Other Income':'📌'};
+  const EXP_ICONS = {Food:'🛒',Transport:'🚌',Housing:'🏠',Health:'💊',Shopping:'🛍️',Entertainment:'🎬',Bills:'💡',Education:'📚',Other:'📌'};
+
+  function init() {
+    const name  = localStorage.getItem('userName')  || 'User';
+    const email = localStorage.getItem('userEmail') || '';
+    document.getElementById('avatarLetter').textContent = name.charAt(0).toUpperCase();
+    document.getElementById('profileName').textContent  = name;
+    document.getElementById('profileEmail').textContent = email;
+    document.getElementById('inc-date').value = new Date().toISOString().split('T')[0];
+
+    // Load salary as default income if no incomes yet
+    const salary = parseFloat(localStorage.getItem('salary') || '0');
+    if (!incomes.length && salary > 0) {
+      incomes.push({ id:'salary-default', title:'Monthly Salary', amount: salary, category:'Salary', date: new Date().toISOString().split('T')[0] });
+      save();
+    }
+    render();
+  }
+
+  function render() { renderStats(); renderChart(); renderTxnList(); renderSummary(); }
+function fmt(n) {
+  const lang = localStorage.getItem('bt_language') || 'en';
+  const localeMap = {en:'en-IN',hi:'hi-IN',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',ar:'ar-SA',fr:'fr-FR',de:'de-DE',es:'es-ES',pt:'pt-BR',ru:'ru-RU'};
+  const locale = localeMap[lang] || 'en-IN';
+  const sym = localStorage.getItem('bt_currency_sym') || '₹';
+return sym+Number(n).toLocaleString(locale,{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+function fmtD(d) {
+  if(!d) return '—';
+  const lang = localStorage.getItem('bt_language') || 'en';
+  const localeMap = {en:'en-IN',hi:'hi-IN',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',ar:'ar-SA',fr:'fr-FR',de:'de-DE',es:'es-ES',pt:'pt-BR',ru:'ru-RU'};
+  const locale = localeMap[lang] || 'en-IN';
+  return new Date(d+'T00:00:00').toLocaleDateString(locale,{day:'numeric',month:'short'});
+}
+  function esc(s)   { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function renderStats() {
+    const totalInc = incomes.reduce((s,e)=>s+e.amount,0);
+    const totalExp = expenses.reduce((s,e)=>s+e.amount,0);
+    const net      = totalInc - totalExp;
+    const rate     = totalInc > 0 ? Math.round((net/totalInc)*100) : 0;
+
+    // Helper for translated entry/entries
+    const entWord = (n) => n === 1 ? (t('entry')||'entry') : (t('entries')||'entries');
+
+    document.getElementById('sc-income').textContent   = fmt(totalInc);
+    document.getElementById('sc-inc-count').textContent= incomes.length + ' ' + entWord(incomes.length);
+    document.getElementById('sc-expense').textContent  = fmt(totalExp);
+    document.getElementById('sc-exp-count').textContent= expenses.length + ' ' + entWord(expenses.length);
+    document.getElementById('sc-net').textContent      = fmt(Math.abs(net));
+    document.getElementById('sc-net').style.color      = '#ffffff';
+    document.getElementById('sc-net-sub').textContent  = net >= 0 ? (t('surplus')||'surplus') : (t('deficit')||'deficit');
+    document.getElementById('sc-rate').textContent     = Math.max(0,rate) + '%';
+    document.getElementById('sc-rate').style.color     = '#ffffff';
+  }
+
+  function getMonthlyData() {
+    const months = {};
+    const addMonths = (arr, type) => arr.forEach(e => {
+      const d = new Date(e.date+'T00:00:00');
+      const key = d.toLocaleDateString('en-IN',{month:'short',year:'2-digit'});
+      if (!months[key]) months[key] = { inc:0, exp:0 };
+      months[key][type] += e.amount;
+    });
+    addMonths(incomes,'inc'); addMonths(expenses,'exp');
+    const sorted = Object.entries(months).slice(-6);
+    return { labels: sorted.map(x=>x[0]), income: sorted.map(x=>x[1].inc), expense: sorted.map(x=>x[1].exp) };
+  }
+
+  function getWeeklyData() {
+    const days = [], inc = [], exp = [];
+    for (let i=6;i>=0;i--) {
+      const d = new Date(); d.setDate(d.getDate()-i);
+      const key = d.toISOString().split('T')[0];
+      days.push(d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric'}));
+      inc.push(incomes.filter(e=>e.date===key).reduce((s,e)=>s+e.amount,0));
+      exp.push(expenses.filter(e=>e.date===key).reduce((s,e)=>s+e.amount,0));
+    }
+    return { labels: days, income: inc, expense: exp };
+  }
+
+  function renderChart() {
+    const { labels, income, expense } = chartView === 'month' ? getMonthlyData() : getWeeklyData();
+    const hasData = income.some(v=>v>0) || expense.some(v=>v>0);
+    document.getElementById('noChart').style.display  = hasData ? 'none' : 'block';
+    document.getElementById('mainChart').style.display = hasData ? 'block' : 'none';
+    if (mainChart) mainChart.destroy();
+    if (!hasData) return;
+
+    mainChart = new Chart(document.getElementById('mainChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: t('income')||'Income',  data: income,  backgroundColor:'rgba(82,176,82,0.5)',  borderColor:'#52b052', borderWidth:1.5, borderRadius:6, borderSkipped:false },
+{ label: t('expense')||'Expense', data: expense, backgroundColor:'rgba(224,85,85,0.45)', borderColor:'#e05555', borderWidth:1.5, borderRadius:6, borderSkipped:false },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color:'#7a9870', font:{ family:"'DM Sans',sans-serif", size:12 }, boxWidth:12, padding:16 } },
+          tooltip: { callbacks: { label: c => ' '+c.dataset.label+': '+fmt(c.raw) } }
+        },
+        scales: {
+          x: { grid:{ color:'rgba(255,255,255,0.03)' }, ticks:{ color:'#7a9870', font:{ size:12 } } },
+          y: { grid:{ color:'rgba(255,255,255,0.04)' }, ticks:{ color:'#7a9870', font:{ size:11 }, callback: v=>'₹'+v } }
+        }
+      }
+    });
+  }
+
+  function renderTxnList() {
+    const box = document.getElementById('txnRows');
+    let list = [];
+    if (txnTab === 'all' || txnTab === 'inc') {
+      incomes.forEach(e=>list.push({...e, type:'inc'}));
+    }
+    if (txnTab === 'all' || txnTab === 'exp') {
+      expenses.forEach(e=>list.push({...e, type:'exp'}));
+    }
+    list.sort((a,b)=> new Date(b.date) - new Date(a.date));
+    if (!list.length) { box.innerHTML='<div class="txn-empty">'+(t('no_transactions_yet')||'No transactions yet')+'</div>'; return; }
+    box.innerHTML = list.map(e=>{
+      const isInc = e.type==='inc';
+      const icon  = isInc ? (INC_ICONS[e.category]||'💼') : (EXP_ICONS[e.category]||'📌');
+      const bg    = isInc ? 'rgba(82,176,82,0.15)' : 'rgba(224,85,85,0.12)';
+      const amt   = isInc ? '<span class="txn-amt" style="color:var(--green-bright);">+'+fmt(e.amount)+'</span>' : '<span class="txn-amt" style="color:var(--red);">−'+fmt(e.amount)+'</span>';
+      const del   = isInc ? `<button class="txn-del" onclick="delIncome('${e.id}')">✕</button>` : '';
+      return `<div class="txn-row">
+        <div class="txn-ico" style="background:${bg};">${icon}</div>
+        <div class="txn-info"><div class="txn-name">${esc(e.title)}</div><div class="txn-date">${e.category} · ${fmtD(e.date)}</div></div>
+        ${amt}${del}
+      </div>`;
+    }).join('');
+  }
+
+  function renderSummary() {
+    const now = new Date(); const m=now.getMonth(), y=now.getFullYear();
+    const mInc = incomes.filter(e=>{ const d=new Date(e.date+'T00:00:00'); return d.getMonth()===m&&d.getFullYear()===y; }).reduce((s,e)=>s+e.amount,0);
+    const mExp = expenses.filter(e=>{ const d=new Date(e.date+'T00:00:00'); return d.getMonth()===m&&d.getFullYear()===y; }).reduce((s,e)=>s+e.amount,0);
+    const net  = mInc - mExp;
+    const pct  = mInc > 0 ? Math.min(100, Math.round(mExp/mInc*100)) : 0;
+    const col  = pct >= 90 ? 'var(--red)' : pct >= 70 ? 'var(--gold)' : 'var(--green-bright)';
+    document.getElementById('sum-inc').textContent = fmt(mInc);
+    document.getElementById('sum-exp').textContent = fmt(mExp);
+    document.getElementById('sum-net').textContent = fmt(Math.abs(net));
+    document.getElementById('sum-net').style.color = net>=0?'var(--gold-light)':'var(--red)';
+    document.getElementById('progFill').style.width = pct+'%';
+    document.getElementById('progFill').style.background = col;
+    document.getElementById('progPct').textContent = pct + (t('percent_of_income')||'% of income');
+  }
+
+  function addIncome() {
+    const title  = document.getElementById('inc-title').value.trim();
+    const amount = parseFloat(document.getElementById('inc-amount').value);
+    const cat    = document.getElementById('inc-cat').value;
+    const date   = document.getElementById('inc-date').value || new Date().toISOString().split('T')[0];
+    if (!title)           return showToast(t('enter_source')||'Enter an income source', true);
+if (!amount||amount<=0) return showToast(t('enter_valid_amount')||'Enter a valid amount', true);
+    incomes.push({ id: Date.now().toString(), title, amount, category: cat, date });
+    save(); render();
+    document.getElementById('inc-title').value  = '';
+    document.getElementById('inc-amount').value = '';
+    showToast('Income added: '+title+' — '+fmt(amount));
+  }
+
+  function delIncome(id) { incomes = incomes.filter(e=>e.id!==id); save(); render(); showToast('Income removed'); }
+
+  function switchView(v) {
+    chartView = v;
+    document.getElementById('vt-month').classList.toggle('on', v==='month');
+    document.getElementById('vt-week').classList.toggle('on',  v==='week');
+    renderChart();
+  }
+
+  function switchTxnTab(t) {
+    txnTab = t;
+    ['all','inc','exp'].forEach(x => {
+      const el = document.getElementById('tt-'+x);
+      el.className = 'ttab';
+      if (x===t) el.classList.add(x==='inc'?'on-inc':x==='exp'?'on-exp':'on-inc');
+    });
+    renderTxnList();
+  }
+
+  function save()       { localStorage.setItem('bt_incomes', JSON.stringify(incomes)); }
+  function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
+  function logout()     { localStorage.removeItem('token'); window.location.href='login.html'; }
+  function showToast(msg, err) {
+    const t=document.getElementById('toast'); t.textContent=msg; t.className='toast'+(err?' err':''); t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),2800);
+  }
+
+  function toggleProfile(e) {
+    e.stopPropagation();
+    const p = document.getElementById('profilePopup');
+    const name  = localStorage.getItem('userName')  || 'User';
+    const email = localStorage.getItem('userEmail') || '—';
+    document.getElementById('popupName').textContent  = name;
+    document.getElementById('popupEmail').textContent = email;
+    p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  }
+  document.addEventListener('click', function() {
+    const p = document.getElementById('profilePopup');
+    if (p) p.style.display = 'none';
+  });
+  init();
+</script>
+<script src="userdata.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<script src="help-tour.js"></script>
+</body>
+</html>
