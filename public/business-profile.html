@@ -144,9 +144,7 @@
     <a href="business-report.html"  class="nav-link"><span class="icon">📅</span> Monthly Summary</a>
     <a href="business-chart.html"   class="nav-link"><span class="icon">📈</span> Charts</a>
     <a href="business-partners.html"class="nav-link"><span class="icon">🤝</span> Partners</a>
-    <div class="nav-label">Account</div>
-    <a href="settings.html"         class="nav-link"><span class="icon">⚙️</span> Settings</a>
-    <a href="business-profile.html" class="nav-link active"><span class="icon">👤</span> Profile</a>
+    <a href="business-report.html" class="nav-link"><span class="icon">📄</span> PDF Report</a>
   </nav>
   <div class="sidebar-bottom">
     <div class="profile-row" onclick="toggleProfile(event)" style="cursor:pointer;">
@@ -353,7 +351,8 @@
     // Load business data from server
     const token = localStorage.getItem('token');
     try {
-      const res  = await fetch('http://localhost:5000/api/business', { headers: { 'Authorization': 'Bearer ' + token } });
+      const res  = await fetch('/api/business', {
+       headers: { 'Authorization': 'Bearer ' + token } });
       const data = await res.json();
       const txns = Array.isArray(data) ? data : [];
 
@@ -445,7 +444,7 @@
     if (name)  { localStorage.setItem('userName', name);  localStorage.setItem('name', name); }
     if (email) { localStorage.setItem('userEmail', email); localStorage.setItem('email', email); }
     const token=localStorage.getItem('token');
-    if (token) { fetch('http://localhost:5000/api/auth/profile', { method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({name,email}) }).catch(()=>{}); }
+    if (token) { fetch('/api/auth/profile', { method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({name,email}) }).catch(()=>{}); }
     btn.disabled=false; sp.style.display='none'; bt.textContent='💾 Save Profile';
     document.getElementById('savedStrip').classList.add('show');
     setTimeout(()=>document.getElementById('savedStrip').classList.remove('show'), 4000);
@@ -462,7 +461,7 @@
     btn.disabled=true; sp.style.display='block'; bt.textContent='Changing…';
     const token=localStorage.getItem('token');
     try {
-      const res  = await fetch('http://localhost:5000/api/auth/change-password', { method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({currentPassword:cur,newPassword:nw}) });
+      const res  = await fetch('/api/auth/change-password', { method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({currentPassword:cur,newPassword:nw}) });
       const data = await res.json();
       if (!res.ok) { showToast(data.message||'Password change failed', true); btn.disabled=false; sp.style.display='none'; bt.textContent='🔑 Change Password'; return; }
       document.getElementById('cur-pw').value=''; document.getElementById('new-pw').value=''; document.getElementById('conf-pw').value='';

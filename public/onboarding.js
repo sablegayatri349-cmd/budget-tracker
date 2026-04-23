@@ -207,6 +207,7 @@ let selectedMode = 'personal';
       subtitle.textContent = 'Choose your mode — change anytime in Settings';
       nextText.textContent = 'Next →';
       skip.textContent = 'Skip Setup';
+      skip.style.display = 'none';
       document.getElementById('obNext').onclick = obNext;
       body.innerHTML = `
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
@@ -232,6 +233,7 @@ let selectedMode = 'personal';
     } 
     else if (step === 2) {
       emoji.textContent = '💼'; title.textContent = 'Set Your Income';
+      skip.style.display = 'block';
       subtitle.textContent = "We'll calculate your spending budget automatically";
       nextText.textContent = 'Next Step →'; skip.textContent = 'Skip';
       const ss = localStorage.getItem('salary') || '';
