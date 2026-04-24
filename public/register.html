@@ -292,7 +292,8 @@ setField('email','email-msg',ok?'Valid email ✓':'Enter a valid email (e.g. you
       
      // Auto login after registration
      if(res.status===201){
-    const loginRes = await fetch('http://localhost:5000/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+    const loginRes = await fetch('/api/auth/login',
+    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
     const loginData = await loginRes.json();
     if(loginData.token){
      localStorage.setItem('token', loginData.token);
