@@ -475,7 +475,7 @@
     if (!confirm('Are you sure? This will delete ALL your business transactions. Cannot be undone.')) return;
     const token = localStorage.getItem('token');
     showToast('Clearing business data...');
-    fetch('http://localhost:5000/api/business', { method:'DELETE', headers:{'Authorization':'Bearer '+token} })
+    fetch('/api/business', { method:'DELETE', headers:{'Authorization':'Bearer '+token} })
       .then(()=>{ showToast('All business data cleared'); setTimeout(()=>init(), 500); })
       .catch(()=>{ showToast('Could not clear data from server', true); });
   }
