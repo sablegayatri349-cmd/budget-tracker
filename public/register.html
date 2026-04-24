@@ -287,7 +287,7 @@ setField('email','email-msg',ok?'Valid email ✓':'Enter a valid email (e.g. you
     const btn=document.getElementById('sub-btn'), sp=document.getElementById('spinner'), bt=document.getElementById('btn-text');
     btn.disabled=true; sp.style.display='block'; bt.textContent='Creating account…';
     try {
-      const res=await fetch('http://localhost:5000/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password})});
+      const res=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password})});
       const data=await res.json();
       
      // Auto login after registration
