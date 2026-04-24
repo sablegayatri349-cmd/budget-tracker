@@ -433,8 +433,8 @@
         background: #141f14;
         border: 1.5px solid rgba(201,168,76,0.4);
         border-radius: 18px;
-        padding: 16px 18px;
-        max-width: 270px; min-width: 210px;
+        padding: 22px 26px;
+        max-width: 360px; min-width: 300px;
         box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 20px rgba(201,168,76,0.12);
         transition: all .45s cubic-bezier(.4,0,.2,1);
         opacity: 0; transform: scale(0.85);
@@ -446,12 +446,12 @@
 
       .miumiu-title {
         font-family: 'DM Serif Display', serif;
-        font-size: 15px; color: #e8c86a;
+        font-size: 17px; color: #e8c86a;
         margin-bottom: 6px; line-height: 1.3;
       }
       .miumiu-desc {
         font-family: 'DM Sans', sans-serif;
-        font-size: 12.5px; color: #a8c8a0;
+        font-size: 14px; color: #a8c8a0;
         line-height: 1.55; margin-bottom: 14px;
       }
       .miumiu-progress {
@@ -662,7 +662,7 @@
       g.style.height   = (rect.height + pad * 2) + "px";
 
       const miuW = 90, miuH = 90;
-      const bubW = 270, bubH = 180;
+      const bubW = 360, bubH = 200;
       const margin = 12;
 
       // Always place Miu to the right side of the element
