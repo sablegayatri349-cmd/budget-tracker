@@ -1014,7 +1014,7 @@ exps.push(newExp);
 localStorage.setItem('bt_expenses', JSON.stringify(exps));
 localStorage.setItem('expenses', JSON.stringify(exps));
 if (token) {
-  fetch('http://localhost:5000/api/expenses', {
+  fetch('/api/expenses', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
     body: JSON.stringify(newExp)

@@ -444,7 +444,7 @@ return sym+Number(n).toLocaleString(locale,{minimumFractionDigits:0,maximumFract
     if (name)  { localStorage.setItem('userName', name);  localStorage.setItem('name', name); }
     if (email) { localStorage.setItem('userEmail', email); localStorage.setItem('email', email); }
     const token=localStorage.getItem('token');
-    if (token) { fetch('http://localhost:5000/api/auth/profile', { method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({ name, email }) }).catch(()=>{}); }
+    if (token) { fetch('/api/auth/profile', { method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({ name, email }) }).catch(()=>{}); }
     btn.disabled=false; sp.style.display='none'; bt.textContent='💾 Save Profile';
     document.getElementById('savedStrip').classList.add('show');
     setTimeout(()=>document.getElementById('savedStrip').classList.remove('show'), 4000);
@@ -462,7 +462,7 @@ return sym+Number(n).toLocaleString(locale,{minimumFractionDigits:0,maximumFract
     const token=localStorage.getItem('token');
     try {
       if (token) {
-        const res = await fetch('http://localhost:5000/api/auth/change-password', { method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({ currentPassword: cur, newPassword: nw }) });
+        const res = await fetch('/api/auth/change-password', { method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({ currentPassword: cur, newPassword: nw }) });
         const data = await res.json();
         if (!res.ok) { showToast(data.message||'Password change failed', true); btn.disabled=false; sp.style.display='none'; bt.textContent='🔑 Change Password'; return; }
       }
