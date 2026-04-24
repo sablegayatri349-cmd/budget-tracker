@@ -280,12 +280,18 @@ if (res.status===200&&data.token) {
     localStorage.removeItem('bt_budget');
     localStorage.removeItem('bt_currency');
     localStorage.removeItem('bt_currency_sym');
-    localStorage.removeItem('bt_onboarded');
     localStorage.removeItem('expenses');
     localStorage.removeItem('salary');
     localStorage.removeItem('saving');
     localStorage.removeItem('joinDate');
     localStorage.removeItem('budget');
+    // ❌ DO NOT remove onboarding flag here
+}
+
+// Show onboarding only for new users (never seen it before on this device)
+const emailKey = email.toLowerCase().replace(/[^a-zA-Z0-9]/g, '_') + '_bt_onboarded';
+if (!localStorage.getItem(emailKey)) {
+    sessionStorage.setItem('show_onboarding', '1');
 }
     
     showToast('Welcome back! Redirecting…'); 
