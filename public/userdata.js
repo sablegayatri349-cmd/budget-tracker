@@ -5,7 +5,7 @@
 
 (function () {
 
-  const API = 'http://localhost:5000/api';
+  const API = '/api';
 
   /* ── GET TOKEN ── */
   function getToken() {

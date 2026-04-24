@@ -948,7 +948,7 @@ if (budget > 0) {
     showToast(t('success'));
     const token = localStorage.getItem('token');
     if (token) {
-      fetch(`http://localhost:5000/api/expenses/${id}`, {
+      fetch(`/api/expenses/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ title, amount, category: cat, date })
@@ -999,7 +999,7 @@ if (budget > 0) {
     checkAndMarkBillPaid(title, amount);
     syncGoalFromExpense(category, amount, date, title);
     const token = localStorage.getItem('token');
-    if (token) fetch('http://localhost:5000/api/expenses',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(exp)}).catch(()=>{});
+    if (token) fetch('/api/expenses',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(exp)}).catch(()=>{});
   }
 
   function syncGoalFromExpense(category, amount, date, title) {
