@@ -2,961 +2,750 @@
 <html lang="en">
 <head>
   <script src="theme.js"></script>
-<script src="translations.js"></script>
-<script src="language.js"></script>
-  <meta charset="UTF-8" />
+  <script src="translations.js"></script>
+  <script src="language.js"></script>
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Business Settings — BudgetTracker</title>
+  <title>Business Settings – BudgetTracker</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-  --bg:          #080f08;
-  --bg2:         #0c140c;
-  --bg3:         #111a11;
-  --card:        #141f14;
-  --card2:       #1a2a1a;
-  --border:      #1f2f1f;
-  --border2:     #2a402a;
-  --green-dark:  #1a3d1a;
-  --green:       #2d6a2d;
-  --green-mid:   #3a8c3a;
-  --green-bright:#52b052;
-  --gold:        #c9a84c;
-  --gold-light:  #e8c86a;
-  --gold-bright: #f5d87a;
-  --gold-dim:    rgba(201,168,76,0.12);
-  --gold-border: rgba(201,168,76,0.25);
-  --red:         #e05555;
-  --red-dim:     rgba(224,85,85,0.12);
-  --text:        #e8f0e0;
-  --tmid:        #7a9870;
-  --tdim:        #3a5030;
-  --label:       #c9a84c;
-  --danger:      rgba(192,57,43,0.6);
-  --danger2:     #e07070;
-  --mid:         #7a9870;
-  --gold2:       #e8c86a;
-  --sidebar-w:   235px;
-  --font-d:      'DM Serif Display', serif;
-  --font-b:      'DM Sans', sans-serif;
-}
-    * { margin:0; padding:0; box-sizing:border-box; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      display: flex;
-      min-height: 100vh;
+      --bg:#080f08; --bg2:#0c140c; --bg3:#111a11; --card:#141f14; --card2:#1a2a1a;
+      --border:#1f2f1f; --border2:#2a402a; --green-dark:#1a3d1a; --green:#2d6a2d;
+      --green-mid:#3a8c3a; --green-bright:#52b052; --gold:#c9a84c; --gold-light:#e8c86a;
+      --gold-bright:#f5d87a; --gold-dim:rgba(201,168,76,0.12); --gold-border:rgba(201,168,76,0.25);
+      --red:#e05555; --red-dim:rgba(224,85,85,0.12); --text:#e8f0e0; --tmid:#7a9870; --tdim:#3a5030;
+      --sidebar-w:235px; --font-d:'DM Serif Display',serif; --font-b:'DM Sans',sans-serif;
     }
+    body { font-family:var(--font-b); background:var(--bg); color:var(--text); min-height:100vh; }
 
-    /* ── SIDEBAR ── */
-    .sidebar {
-      width: var(--sidebar-w);
-      background: var(--bg2);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      padding: 0 0 24px;
-      position: fixed;
-      top: 0; left: 0; bottom: 0;
-      z-index: 100;
+    /* SIDEBAR */
+    .sidebar { position:fixed; top:0; left:0; bottom:0; width:var(--sidebar-w); background:var(--bg2); border-right:1px solid var(--border); display:flex; flex-direction:column; z-index:100; transition:transform .3s; }
+    .sidebar-logo { padding:24px 20px 20px; border-bottom:1px solid var(--border); font-family:var(--font-d); font-size:20px; color:var(--text); display:flex; align-items:center; gap:9px; text-decoration:none; }
+    .logo-dot { width:9px; height:9px; background:var(--gold); border-radius:50%; flex-shrink:0; box-shadow:0 0 10px rgba(201,168,76,0.6); }
+    .nav-section { flex:1; padding:16px 10px; overflow-y:auto; }
+    .nav-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.12em; color:var(--tdim); padding:0 10px; margin:16px 0 6px; }
+    .nav-link { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:9px; text-decoration:none; font-size:13.5px; font-weight:500; color:var(--tmid); transition:background .15s,color .15s; margin-bottom:2px; }
+    .nav-link:hover { background:var(--bg3); color:var(--text); }
+    .nav-link.active { background:var(--gold-dim); color:var(--gold-light); border:1px solid var(--gold-border); }
+    .nav-link .icon { font-size:15px; width:20px; text-align:center; flex-shrink:0; }
+    .sidebar-bottom { padding:14px 10px; border-top:1px solid var(--border); }
+    .profile-row { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:9px; cursor:pointer; transition:background .15s; }
+    .profile-row:hover { background:var(--bg3); }
+    .avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--gold),var(--gold-bright)); color:#0c0c00; font-family:var(--font-d); font-size:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .profile-name  { font-size:13px; font-weight:500; color:var(--text); }
+    .profile-email { font-size:11px; color:#7a9870; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:135px; }
+
+    /* MAIN */
+    .main { margin-left:var(--sidebar-w); padding:32px 32px 60px; min-height:100vh; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; }
+    .topbar-left h1 { font-family:var(--font-d); font-size:26px; color:var(--text); }
+    .topbar-left p  { font-size:13px; color:var(--tdim); margin-top:3px; }
+    .back-btn { display:flex; align-items:center; gap:6px; padding:9px 18px; background:var(--gold-dim); border:1px solid var(--gold-border); border-radius:50px; color:var(--gold-light); font-size:13px; font-weight:500; text-decoration:none; }
+    .back-btn:hover { background:rgba(201,168,76,0.22); }
+
+    .page-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+
+    /* CARD */
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:20px; }
+    .card-header { padding:16px 22px; background:var(--green-dark); border-bottom:1px solid rgba(201,168,76,0.15); display:flex; align-items:center; gap:10px; }
+    .card-icon  { font-size:18px; }
+    .card-title { font-family:var(--font-d); font-size:17px; color:var(--gold-light); }
+    .card-body  { padding:22px; }
+
+    /* FORM FIELDS */
+    .field { margin-bottom:16px; }
+    .field label { font-size:11px; font-weight:700; color:#7a9870; text-transform:uppercase; letter-spacing:.06em; display:block; margin-bottom:6px; }
+    .field input, .field select {
+      width:100%; padding:11px 13px; background:var(--bg3); border:1px solid var(--border2);
+      border-radius:10px; font-family:var(--font-b); font-size:14px; color:var(--text);
+      outline:none; transition:border-color .2s,box-shadow .2s;
     }
+    .field input:focus, .field select:focus { border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-dim); }
+    .field input::placeholder { color:var(--tdim); }
+    .field select option { background:var(--bg3); }
+    .field-hint { font-size:11px; color:#7a9870; margin-top:5px; }
 
-    .sidebar-logo {
-      padding: 24px 20px 20px;
-      border-bottom: 1px solid var(--border);
-    }
+    /* CURRENCY GRID */
+    .currency-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .currency-opt { padding:14px 10px; border-radius:12px; border:1px solid var(--border2); background:var(--bg3); cursor:pointer; text-align:center; transition:all .2s; }
+    .currency-opt:hover { border-color:var(--gold-border); background:var(--gold-dim); }
+    .currency-opt.selected { border-color:var(--gold); background:var(--gold-dim); box-shadow:0 0 0 1px var(--gold); }
+    .currency-sym  { font-family:var(--font-d); font-size:26px; color:var(--gold-light); margin-bottom:4px; }
+    .currency-name { font-size:11px; color:var(--tmid); }
+    .currency-code { font-size:10px; color:var(--tdim); margin-top:2px; }
+    .currency-note { font-size:12px; color:var(--tdim); margin-top:14px; line-height:1.5; }
 
-    .sidebar-logo .logo-text {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.25rem;
-      color: var(--gold2);
-      letter-spacing: 0.5px;
-    }
+    /* LANGUAGE GRID */
+    .lang-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .lang-btn { padding:12px 8px; border-radius:12px; border:1px solid var(--border2); background:var(--bg3); cursor:pointer; text-align:center; transition:all .15s; display:flex; flex-direction:column; align-items:center; gap:4px; }
+    .lang-btn:hover { border-color:var(--gold-border); background:var(--gold-dim); }
+    .lang-btn.selected { border-color:var(--gold-border); background:var(--gold-dim); }
+    .lang-flag   { font-size:20px; }
+    .lang-name   { font-size:11px; font-weight:600; color:var(--text); }
+    .lang-native { font-size:11px; color:var(--tmid); }
+    .lang-btn.selected .lang-name   { color:var(--gold-light); }
+    .lang-btn.selected .lang-native { color:var(--gold); }
 
-    .sidebar-logo .logo-sub {
-      font-size: 0.7rem;
-      color: var(--mid);
-      margin-top: 2px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
+    /* THEME */
+    .theme-opts { display:flex; gap:12px; }
+    .theme-opt { flex:1; padding:16px 12px; border-radius:12px; cursor:pointer; text-align:center; transition:all .2s; border:2px solid transparent; }
+    .theme-opt:hover { border-color:var(--gold-border); }
+    .theme-opt.active { border-color:var(--gold); }
+    .theme-opt-dark  { background:#0c140c; }
+    .theme-opt-light { background:#f0f5ee; }
+    .theme-opt-ico  { font-size:26px; margin-bottom:6px; }
+    .theme-opt-name { font-size:13px; font-weight:600; }
+    .theme-opt-sub  { font-size:11px; margin-top:3px; color:var(--tmid); }
 
-    .sidebar-section-label {
-      font-size: 0.65rem;
-      color: var(--mid);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      padding: 18px 20px 6px;
-    }
+    /* PARTNER */
+    .partner-count-row { display:flex; gap:8px; margin-bottom:14px; }
+    .p-count-btn { flex:1; padding:9px; border-radius:9px; border:1px solid var(--border2); background:var(--bg3); color:var(--tmid); font-family:var(--font-b); font-size:12px; cursor:pointer; transition:all .2s; }
+    .p-count-btn.active, .p-count-btn:hover { border-color:var(--gold); color:var(--gold-light); background:var(--gold-dim); }
+    .partner-row { display:flex; gap:8px; margin-bottom:10px; }
+    .partner-name-input, .partner-pct-input { background:var(--bg3); border:1px solid var(--border2); border-radius:9px; padding:9px 12px; color:var(--text); font-family:var(--font-b); font-size:13px; outline:none; transition:border-color .2s; }
+    .partner-name-input { flex:2; }
+    .partner-pct-input  { flex:1; }
+    .partner-name-input:focus, .partner-pct-input:focus { border-color:var(--gold); }
+    .equal-note { font-size:11px; color:var(--tdim); text-align:center; margin-top:6px; }
 
-    .sidebar-link {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 20px;
-      color: var(--mid);
-      text-decoration: none;
-      font-size: 0.88rem;
-      border-radius: 0 8px 8px 0;
-      margin-right: 12px;
-      transition: all 0.2s;
-    }
+    /* MODE */
+    .mode-options { display:flex; flex-direction:column; gap:12px; }
+    .mode-opt { display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:10px; border:2px solid var(--border2); background:var(--bg3); cursor:pointer; transition:all .2s; }
+    .mode-opt:hover { border-color:var(--gold); }
+    .mode-opt.active { border-color:var(--gold); background:var(--gold-dim); }
+    .mode-opt-ico  { font-size:1.5rem; }
+    .mode-opt-name { font-weight:600; color:var(--text); font-size:.95rem; }
+    .mode-opt-desc { font-size:.78rem; color:var(--tmid); margin-top:2px; }
+    .mode-opt-check { margin-left:auto; color:var(--gold-light); font-size:1.1rem; font-weight:bold; }
 
-    .sidebar-link:hover { background: var(--bg3); color: var(--text); }
-    .sidebar-link.active { background: rgba(201,168,76,0.12); color: var(--gold2); border-left: 3px solid var(--gold); padding-left: 17px; }
+    /* PIN */
+    .pin-toggle-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+    .pin-toggle-lbl { font-size:14px; font-weight:500; color:var(--text); }
+    .pin-toggle-sub { font-size:12px; color:var(--tdim); margin-top:2px; }
+    .toggle-sw { position:relative; width:46px; height:26px; }
+    .toggle-sw input { opacity:0; width:0; height:0; }
+    .toggle-slider { position:absolute; inset:0; cursor:pointer; border-radius:26px; background:var(--border2); transition:.3s; }
+    .toggle-slider:before { content:''; position:absolute; width:20px; height:20px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.3s; }
+    .toggle-sw input:checked + .toggle-slider { background:var(--gold); }
+    .toggle-sw input:checked + .toggle-slider:before { transform:translateX(20px); }
+    .pin-setup { display:none; }
+    .pin-setup.show { display:block; }
+    .pin-setup-lbl { font-size:12px; font-weight:600; color:var(--tmid); text-transform:uppercase; letter-spacing:.05em; text-align:center; margin-bottom:8px; }
+    .pin-dots { display:flex; gap:14px; justify-content:center; margin:12px 0 16px; }
+    .pin-dot  { width:16px; height:16px; border-radius:50%; border:2px solid var(--border2); transition:all .2s; }
+    .pin-dot.filled { background:var(--gold); border-color:var(--gold); }
+    .pin-keypad { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+    .pin-key { padding:13px; border-radius:10px; background:var(--bg3); border:1px solid var(--border2); font-family:var(--font-d); font-size:20px; color:var(--text); cursor:pointer; text-align:center; transition:all .15s; }
+    .pin-key:hover { background:var(--gold-dim); border-color:var(--gold-border); color:var(--gold-light); }
+    .pin-key.del { font-size:15px; color:var(--tmid); }
+    .pin-key.del:hover { background:var(--red-dim); border-color:rgba(224,85,85,0.2); color:var(--red); }
+    .pin-btns { display:flex; gap:10px; }
+    .btn-set-pin { flex:1; padding:11px; border:none; border-radius:10px; font-family:var(--font-b); font-size:14px; font-weight:600; cursor:pointer; background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:#0c0c00; }
+    .btn-clr-pin { padding:11px 16px; border:1px solid var(--border2); border-radius:10px; font-family:var(--font-b); font-size:13px; cursor:pointer; background:var(--bg3); color:var(--tmid); }
+    .pin-msg { font-size:12px; text-align:center; margin-top:10px; min-height:16px; }
+    .pin-msg.ok  { color:var(--green-bright); }
+    .pin-msg.err { color:var(--red); }
 
-    .sidebar-link .ico { font-size: 1rem; width: 20px; text-align: center; }
+    /* BUTTONS */
+    .btn-save { width:100%; padding:12px; border:none; border-radius:10px; font-family:var(--font-b); font-size:14px; font-weight:700; cursor:pointer; background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:#0c0c00; transition:opacity .2s,transform .15s; margin-top:4px; }
+    .btn-save:hover { opacity:.88; transform:translateY(-1px); }
 
-    /* ── MAIN ── */
-    .main {
-      margin-left: var(--sidebar-w);
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
+    /* SAVED STRIP */
+    .saved-strip { display:none; padding:11px 16px; border-radius:10px; margin-bottom:16px; background:rgba(82,176,82,0.1); border:1px solid rgba(82,176,82,0.25); font-size:13px; color:var(--green-bright); align-items:center; gap:8px; }
+    .saved-strip.show { display:flex; }
 
-    /* ── TOPBAR ── */
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 32px;
-      border-bottom: 1px solid var(--border);
-      background: var(--bg);
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
+    /* TOAST */
+    .toast { position:fixed; bottom:22px; right:24px; background:var(--gold); color:#0c0c00; padding:11px 20px; border-radius:12px; font-size:13px; font-weight:600; z-index:999; transform:translateY(50px); opacity:0; transition:transform .35s cubic-bezier(.175,.885,.32,1.275),opacity .35s; pointer-events:none; }
+    .toast.show { transform:translateY(0); opacity:1; }
+    .toast.err  { background:var(--red); color:#fff; }
 
-    .topbar-title {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.4rem;
-      color: var(--gold2);
-    }
+    .menu-btn { display:none; position:fixed; top:14px; left:14px; z-index:200; width:38px; height:38px; background:var(--green-dark); border:1px solid var(--gold-border); border-radius:9px; align-items:center; justify-content:center; color:var(--gold-light); font-size:18px; cursor:pointer; }
+    .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:90; }
+    ::-webkit-scrollbar { width:5px; } ::-webkit-scrollbar-track { background:transparent; } ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
 
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .mode-badge {
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      padding: 4px 12px;
-      border-radius: 20px;
-      cursor: pointer;
-      border: 1.5px solid var(--gold);
-      color: var(--gold2);
-      background: rgba(201,168,76,0.08);
-      transition: all 0.2s;
-    }
-
-    .mode-badge:hover { background: rgba(201,168,76,0.18); }
-
-    .profile-btn {
-      width: 38px; height: 38px;
-      border-radius: 50%;
-      background: var(--bg3);
-      border: 2px solid var(--gold);
-      color: var(--gold2);
-      font-size: 1rem;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: all 0.2s;
-    }
-
-    .profile-btn:hover { background: rgba(201,168,76,0.15); }
-
-    /* ── CONTENT ── */
-    .content {
-      padding: 32px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      align-items: start;
-    }
-
-    .settings-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 24px;
-      transition: border-color 0.2s;
-    }
-
-    .settings-card:hover { border-color: rgba(201,168,76,0.35); }
-
-    .card-title {
-      font-size: 0.7rem;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-bottom: 18px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .card-title::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    /* ── FORM ELEMENTS ── */
-    .field-label {
-      font-size: 0.8rem;
-      color: var(--mid);
-      margin-bottom: 6px;
-      display: block;
-    }
-
-    .field-input {
-      width: 100%;
-      background: var(--bg3);
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 14px;
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.2s;
-      margin-bottom: 16px;
-    }
-
-    .field-input:focus { border-color: var(--gold); }
-
-    select.field-input option { background: var(--bg2); }
-
-    .save-btn {
-      background: linear-gradient(135deg, var(--gold), var(--gold2));
-      color: #080f08;
-      border: none;
-      padding: 10px 22px;
-      border-radius: 8px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.88rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.15s;
-      width: 100%;
-      margin-top: 4px;
-    }
-
-    .save-btn:hover { opacity: 0.88; transform: translateY(-1px); }
-    .save-btn:active { transform: translateY(0); }
-
-    /* ── MODE SWITCH ── */
-    .mode-options { display: flex; flex-direction: column; gap: 12px; }
-
-    .mode-opt {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 14px 16px;
-      border-radius: 10px;
-      border: 2px solid transparent;
-      background: var(--bg3);
-      cursor: pointer;
-      transition: all 0.25s;
-    }
-
-    .mode-opt:hover { border-color: var(--gold); }
-    .mode-opt.active { border-color: var(--gold2); background: rgba(201,168,76,0.08); }
-
-    .mode-opt-ico { font-size: 1.5rem; }
-    .mode-opt-name { font-weight: 600; color: var(--text); font-size: 0.95rem; }
-    .mode-opt-desc { font-size: 0.78rem; color: var(--mid); margin-top: 2px; }
-    .mode-opt-check { margin-left: auto; color: var(--gold2); font-size: 1.1rem; font-weight: bold; }
-
-    /* ── PIN ── */
-    .pin-row {
-      display: flex;
-      gap: 10px;
-      align-items: flex-end;
-    }
-
-    .pin-row .field-input { margin-bottom: 0; }
-
-    .toggle-pin-btn {
-      background: var(--bg3);
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      color: var(--mid);
-      padding: 10px 14px;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: all 0.2s;
-      white-space: nowrap;
-      margin-bottom: 0;
-    }
-
-    .toggle-pin-btn:hover { border-color: var(--gold); color: var(--gold2); }
-
-    /* ── THEME TOGGLE ── */
-    .theme-opts {
-      display: flex;
-      gap: 12px;
-    }
-
-    .theme-opt {
-      flex: 1;
-      padding: 12px;
-      border-radius: 10px;
-      border: 2px solid transparent;
-      background: var(--bg3);
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.2s;
-    }
-
-    .theme-opt:hover { border-color: var(--gold); }
-    .theme-opt.active { border-color: var(--gold2); }
-    .theme-opt-ico { font-size: 1.4rem; }
-    .theme-opt-name { font-size: 0.78rem; color: var(--mid); margin-top: 4px; }
-
-    /* ── PARTNER PREVIEW ── */
-    .partner-preview {
-      margin-top: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .partner-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .partner-name-input {
-      flex: 2;
-    }
-
-    .partner-pct-input {
-      flex: 1;
-    }
-
-    .partner-name-input,
-    .partner-pct-input {
-      background: var(--bg3);
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 12px;
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.85rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .partner-name-input:focus,
-    .partner-pct-input:focus { border-color: var(--gold); }
-
-    .partner-count-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .p-count-btn {
-      flex: 1;
-      padding: 8px;
-      border-radius: 8px;
-      border: 1.5px solid var(--border);
-      background: var(--bg3);
-      color: var(--mid);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.82rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .p-count-btn.active,
-    .p-count-btn:hover { border-color: var(--gold); color: var(--gold2); background: rgba(201,168,76,0.08); }
-
-    .equal-note {
-      font-size: 0.75rem;
-      color: var(--mid);
-      margin-top: 6px;
-      text-align: center;
-    }
-
-    /* ── DANGER ZONE ── */
-    .danger-card {
-      border-color: rgba(192,57,43,0.3);
-      grid-column: 1 / -1;
-    }
-
-    .danger-card .card-title { color: var(--danger2); }
-    .danger-card .card-title::after { background: rgba(192,57,43,0.25); }
-
-    .danger-desc {
-      font-size: 0.82rem;
-      color: var(--mid);
-      margin-bottom: 16px;
-      line-height: 1.6;
-    }
-
-    .danger-actions {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .danger-btn {
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: 1.5px solid var(--danger);
-      background: transparent;
-      color: var(--danger2);
-    }
-
-    .danger-btn:hover {
-      background: var(--danger);
-      color: #fff;
-    }
-
-    /* ── TOAST ── */
-    .toast {
-      position: fixed;
-      bottom: 28px;
-      right: 28px;
-      background: var(--bg3);
-      border: 1.5px solid var(--gold);
-      color: var(--gold2);
-      padding: 12px 22px;
-      border-radius: 10px;
-      font-size: 0.88rem;
-      font-weight: 500;
-      z-index: 999;
-      display: none;
-      animation: slideUp 0.3s ease;
-    }
-
-    @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    /* ── PROFILE POPUP ── */
-    .profile-popup {
-      position: fixed;
-      top: 70px; right: 24px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      width: 220px;
-      z-index: 200;
-      display: none;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    }
-
-    .profile-popup.open { display: block; animation: fadeIn 0.2s ease; }
-
-    @keyframes fadeIn {
-      from { opacity:0; transform: translateY(-8px); }
-      to   { opacity:1; transform: translateY(0); }
-    }
-
-    .pp-name { font-weight: 600; font-size: 0.95rem; color: var(--text); }
-    .pp-email { font-size: 0.75rem; color: var(--mid); margin-top: 2px; margin-bottom: 12px; }
-    .pp-divider { height: 1px; background: var(--border); margin: 10px 0; }
-
-    .pp-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      border-radius: 8px;
-      color: var(--mid);
-      text-decoration: none;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .pp-link:hover { background: var(--bg3); color: var(--text); }
-    .pp-link.logout { color: var(--danger2); }
-    .pp-link.logout:hover { background: rgba(192,57,43,0.15); }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 768px) {
-      .sidebar { display: none; }
-      .main { margin-left: 0; }
-      .content { grid-template-columns: 1fr; padding: 16px; }
-      .danger-card { grid-column: 1; }
+    @media (max-width:900px) { .page-grid { grid-template-columns:1fr; } .lang-grid { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:700px) {
+      .sidebar { transform:translateX(-100%); } .sidebar.open { transform:translateX(0); }
+      .sidebar-overlay.open { display:block; } .main { margin-left:0; padding:72px 16px 40px; }
+      .menu-btn { display:flex; } .topbar { flex-direction:column; align-items:flex-start; gap:12px; }
+      .currency-grid { grid-template-columns:repeat(2,1fr); }
     }
   </style>
 </head>
 <body>
 
-<!-- ═══════════════ SIDEBAR ═══════════════ -->
-<aside class="sidebar">
-  <div class="sidebar-logo">
-    <div class="logo-text">💼 BudgetTracker</div>
-    <div class="logo-sub">Business Mode</div>
-  </div>
+<button class="menu-btn" onclick="toggleMenu()">☰</button>
+<div class="sidebar-overlay" id="overlay" onclick="toggleMenu()"></div>
 
-  <div class="sidebar-section-label">Business</div>
- <a href="business.html"          class="sidebar-link"><span class="ico">💼</span> Business Dashboard</a>
-<a href="business-report.html"   class="sidebar-link"><span class="ico">📊</span> Monthly Report</a>
-<a href="business-chart.html"    class="sidebar-link"><span class="ico">📈</span> Charts</a>
-<a href="business-partners.html" class="sidebar-link"><span class="ico">🤝</span> Partners</a>
-<a href="business-pdf.html"      class="sidebar-link"><span class="ico">📄</span> PDF Report</a>
-<a href="business-settings.html" class="sidebar-link active"><span class="ico">⚙️</span> Settings</a>
+<aside class="sidebar" id="sidebar">
+  <a class="sidebar-logo" href="welcome.html"><span class="logo-dot"></span>BudgetTracker</a>
+  <nav class="nav-section">
+    <div class="nav-label">Business</div>
+    <a href="business.html"          class="nav-link"><span class="icon">💼</span> Business Dashboard</a>
+    <a href="business-report.html"   class="nav-link"><span class="icon">📊</span> Monthly Report</a>
+    <a href="business-chart.html"    class="nav-link"><span class="icon">📈</span> Charts</a>
+    <a href="business-partners.html" class="nav-link"><span class="icon">🤝</span> Partners</a>
+    <a href="pdf-report.html"        class="nav-link"><span class="icon">📄</span> PDF Report</a>
+    <a href="business-settings.html" class="nav-link active"><span class="icon">⚙️</span> Settings</a>
+    <a class="nav-link" onclick="if(typeof HelpTour!=='undefined')HelpTour.start()" style="cursor:pointer;">
+      <span class="icon">🩵</span> Help Tour
+    </a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="profile-row" onclick="toggleProfile(event)" style="cursor:pointer;">
+      <div class="avatar" id="avatarLetter">U</div>
+      <div>
+        <div class="profile-name"  id="profileName">User</div>
+        <div class="profile-email" id="profileEmail">—</div>
+      </div>
+    </div>
+  </div>
 </aside>
 
-<!-- ═══════════════ MAIN ═══════════════ -->
-<div class="main">
+<div id="profilePopup" style="display:none;position:fixed;bottom:75px;left:10px;width:220px;background:#1a2a1a;border:1px solid rgba(201,168,76,0.25);border-radius:14px;padding:16px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+  <div style="font-size:14px;font-weight:700;color:#e8f0e0;margin-bottom:3px;" id="popupName">User</div>
+  <div style="font-size:11px;color:#7a9870;margin-bottom:12px;" id="popupEmail">—</div>
+  <div style="height:1px;background:#1f2f1f;margin-bottom:12px;"></div>
+  <a href="profile.html" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);border-radius:9px;color:#e8c86a;font-size:12px;font-weight:600;text-decoration:none;margin-bottom:6px;">👤 View Profile</a>
+  <a href="business-settings.html" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);border-radius:9px;color:#e8c86a;font-size:12px;font-weight:600;text-decoration:none;margin-bottom:6px;">⚙️ Business Settings</a>
+  <button onclick="logout()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;background:rgba(224,85,85,0.1);border:1px solid rgba(224,85,85,0.2);border-radius:9px;color:#f09090;font-size:12px;font-weight:600;cursor:pointer;">🚪 Sign Out</button>
+</div>
 
-  <!-- TOPBAR -->
+<main class="main">
   <div class="topbar">
-    <div class="topbar-title">⚙️ Business Settings</div>
-    <div class="topbar-right">
-      <span class="mode-badge" onclick="window.location.href='business-settings.html'">💼 Business</span>
-      <button class="profile-btn" onclick="toggleProfilePopup()" id="profileBtn">👤</button>
+    <div class="topbar-left">
+      <h1>⚙️ Business Settings</h1>
+      <p>Manage your business info, currency, language and security</p>
+    </div>
+    <a href="business.html" class="back-btn">← Dashboard</a>
+  </div>
+
+  <div class="saved-strip" id="savedStrip">✅ Saved successfully!</div>
+
+  <!-- SECTION HEADER -->
+  <div style="font-family:var(--font-d);font-size:20px;color:var(--gold-light);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+    🏢 Business Configuration
+  </div>
+
+  <div class="page-grid">
+
+    <!-- LEFT COLUMN -->
+    <div>
+
+      <!-- BUSINESS INFO -->
+      <div class="card">
+        <div class="card-header"><span class="card-icon">🏢</span><span class="card-title">Business Info</span></div>
+        <div class="card-body">
+          <div class="field">
+            <label>Business Name</label>
+            <input type="text" id="businessName" placeholder="e.g. Sable Traders"/>
+          </div>
+          <div class="field">
+            <label>Owner Name</label>
+            <input type="text" id="ownerName" placeholder="e.g. Gayatri Sable"/>
+          </div>
+          <div class="field">
+            <label>Business Type</label>
+            <select id="businessType">
+              <option value="">Select type...</option>
+              <option value="retail">Retail / Shop</option>
+              <option value="service">Service</option>
+              <option value="freelance">Freelance</option>
+              <option value="manufacturing">Manufacturing</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <button class="btn-save" onclick="saveBusinessInfo()">💾 Save Business Info</button>
+        </div>
+      </div>
+
+      <!-- CURRENCY -->
+      <div class="card">
+        <div class="card-header"><span class="card-icon">💱</span><span class="card-title">Currency</span></div>
+        <div class="card-body">
+          <div class="currency-grid">
+            <div class="currency-opt" data-sym="₹" data-code="INR" onclick="selectCurrency(this)">
+              <div class="currency-sym">₹</div><div class="currency-name">Indian Rupee</div><div class="currency-code">INR</div>
+            </div>
+            <div class="currency-opt" data-sym="$" data-code="USD" onclick="selectCurrency(this)">
+              <div class="currency-sym">$</div><div class="currency-name">US Dollar</div><div class="currency-code">USD</div>
+            </div>
+            <div class="currency-opt" data-sym="€" data-code="EUR" onclick="selectCurrency(this)">
+              <div class="currency-sym">€</div><div class="currency-name">Euro</div><div class="currency-code">EUR</div>
+            </div>
+            <div class="currency-opt" data-sym="£" data-code="GBP" onclick="selectCurrency(this)">
+              <div class="currency-sym">£</div><div class="currency-name">British Pound</div><div class="currency-code">GBP</div>
+            </div>
+            <div class="currency-opt" data-sym="¥" data-code="JPY" onclick="selectCurrency(this)">
+              <div class="currency-sym">¥</div><div class="currency-name">Japanese Yen</div><div class="currency-code">JPY</div>
+            </div>
+            <div class="currency-opt" data-sym="د.إ" data-code="AED" onclick="selectCurrency(this)">
+              <div class="currency-sym" style="font-size:18px;">د.إ</div><div class="currency-name">UAE Dirham</div><div class="currency-code">AED</div>
+            </div>
+          </div>
+          <p class="currency-note">⚠️ Changing currency updates the symbol across all pages. It does not convert existing amounts.</p>
+        </div>
+      </div>
+
+      <!-- PARTNER SPLIT -->
+      <div class="card">
+        <div class="card-header"><span class="card-icon">🤝</span><span class="card-title">Partner Split</span></div>
+        <div class="card-body">
+          <div style="font-size:12px;color:var(--tdim);margin-bottom:12px;">Set how profit/loss is split between business partners.</div>
+          <div class="partner-count-row">
+            <button class="p-count-btn active" id="pc-1" onclick="setPartnerCount(1)">Solo (1)</button>
+            <button class="p-count-btn" id="pc-2" onclick="setPartnerCount(2)">2 Partners</button>
+            <button class="p-count-btn" id="pc-3" onclick="setPartnerCount(3)">3 Partners</button>
+          </div>
+          <div id="partnerFields"></div>
+          <div class="equal-note" id="equalNote">Solo — no split needed</div>
+          <button class="btn-save" style="margin-top:14px;" onclick="savePartners()">💾 Save Partner Config</button>
+        </div>
+      </div>
+
+    </div><!-- /left -->
+
+    <!-- RIGHT COLUMN -->
+    <div>
+
+      <!-- THEME -->
+      <div class="card">
+        <div class="card-header"><span class="card-icon">🎨</span><span class="card-title">App Theme</span></div>
+        <div class="card-body">
+          <div class="theme-opts">
+            <div class="theme-opt theme-opt-dark active" id="themeDark" onclick="applyTheme('dark')">
+              <div class="theme-opt-ico">🌙</div>
+              <div class="theme-opt-name" style="color:#e8f0e0;">Dark Mode</div>
+              <div class="theme-opt-sub">Default</div>
+            </div>
+            <div class="theme-opt theme-opt-light" id="themeLight" onclick="applyTheme('light')">
+              <div class="theme-opt-ico">☀️</div>
+              <div class="theme-opt-name" style="color:#1a2e1a;">Light Mode</div>
+              <div class="theme-opt-sub" style="color:#3a5c2a;">Clean & bright</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- APP MODE -->
+      <div class="card">
+        <div class="card-header"><span class="card-icon">🔄</span><span class="card-title">App Mode</span></div>
+        <div class="card-body">
+          <div class="mode-options">
+            <div class="mode-opt" id="opt-personal" onclick="switchAppMode('personal')">
+              <div class="mode-opt-ico">👤</div>
+              <div>
+                <div class="mode-opt-name">Personal</div>
+                <div class="mode-opt-desc">Track your own expenses & savings</div>
+              </div>
+              <div class="mode-opt-check" id="check-personal" style="visibility:hidden;">✔</div>
+            </div>
+            <div class="mode-opt active" id="opt-business" onclick="switchAppMode('business')">
+              <div class="mode-opt-ico">💼</div>
+              <div>
+                <div class="mode-opt-name">Business</div>
+                <div class="mode-opt-desc">Khata style — Money IN / OUT</div>
+              </div>
+              <div class="mode-opt-check" id="check-business">✔</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LANGUAGE -->
+      <div class="card">
+        <div class="card-header"><span class="card-icon">🌐</span><span class="card-title">Language</span></div>
+        <div class="card-body">
+          <div class="lang-grid" id="langGrid"></div>
+          <div style="margin-top:12px;font-size:12px;color:var(--tdim);">🌍 Applied instantly across all pages.</div>
+        </div>
+      </div>
+
+      <!-- PIN LOCK -->
+      <div class="card">
+        <div class="card-header"><span class="card-icon">🔒</span><span class="card-title">PIN Lock</span></div>
+        <div class="card-body">
+          <div class="pin-toggle-row">
+            <div>
+              <div class="pin-toggle-lbl">Enable PIN Lock</div>
+              <div class="pin-toggle-sub">Require PIN when opening the app</div>
+            </div>
+            <label class="toggle-sw">
+              <input type="checkbox" id="pinToggle" onchange="togglePinSetup()"/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="pin-setup" id="pinSetup">
+            <div class="pin-setup-lbl" id="pinLbl">Set a 4-digit PIN</div>
+            <div class="pin-dots">
+              <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+              <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
+            </div>
+            <div class="pin-keypad">
+              <div class="pin-key" onclick="pinKey('1')">1</div>
+              <div class="pin-key" onclick="pinKey('2')">2</div>
+              <div class="pin-key" onclick="pinKey('3')">3</div>
+              <div class="pin-key" onclick="pinKey('4')">4</div>
+              <div class="pin-key" onclick="pinKey('5')">5</div>
+              <div class="pin-key" onclick="pinKey('6')">6</div>
+              <div class="pin-key" onclick="pinKey('7')">7</div>
+              <div class="pin-key" onclick="pinKey('8')">8</div>
+              <div class="pin-key" onclick="pinKey('9')">9</div>
+              <div class="pin-key" style="visibility:hidden;"></div>
+              <div class="pin-key" onclick="pinKey('0')">0</div>
+              <div class="pin-key del" onclick="pinDel()">⌫</div>
+            </div>
+            <div class="pin-btns">
+              <button class="btn-set-pin" onclick="savePin()">🔒 Set PIN</button>
+              <button class="btn-clr-pin" onclick="clearPin()">Clear</button>
+            </div>
+            <div class="pin-msg" id="pinMsg"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /right -->
+  </div>
+
+  <!-- DANGER ZONE -->
+  <div class="card" style="border-color:rgba(224,85,85,0.3);margin-top:8px;">
+    <div class="card-header" style="background:rgba(224,85,85,0.08);border-bottom:1px solid rgba(224,85,85,0.2);">
+      <span class="card-icon">⚠️</span>
+      <span class="card-title" style="color:#f09090;">Danger Zone</span>
+    </div>
+    <div class="card-body">
+      <p style="font-size:13px;color:var(--tmid);line-height:1.6;margin-bottom:18px;">
+        These actions <strong style="color:#f09090;">cannot be undone.</strong> Clearing business data will permanently delete all your Money IN / OUT transactions.
+      </p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <button onclick="clearBusinessData()"
+          style="padding:11px 20px;border-radius:10px;font-family:var(--font-b);font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--red);background:var(--red-dim);color:#f09090;transition:all .2s;"
+          onmouseover="this.style.background='var(--red)';this.style.color='#fff';"
+          onmouseout="this.style.background='var(--red-dim)';this.style.color='#f09090';">
+          🗑️ Clear All Business Data
+        </button>
+        <button onclick="clearPartners()"
+          style="padding:11px 20px;border-radius:10px;font-family:var(--font-b);font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--red);background:var(--red-dim);color:#f09090;transition:all .2s;"
+          onmouseover="this.style.background='var(--red)';this.style.color='#fff';"
+          onmouseout="this.style.background='var(--red-dim)';this.style.color='#f09090';">
+          🤝 Reset Partners
+        </button>
+        <button onclick="deleteAccount()"
+          style="padding:11px 20px;border-radius:10px;font-family:var(--font-b);font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid #ff4444;background:var(--red-dim);color:#ff4444;transition:all .2s;"
+          onmouseover="this.style.background='#ff4444';this.style.color='#fff';"
+          onmouseout="this.style.background='var(--red-dim)';this.style.color='#ff4444';">
+          🗑️ Delete My Account Permanently
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- CONTENT -->
-  <div class="content">
+</main>
 
-    <!-- ── CARD 1: Business Info ── -->
-    <div class="settings-card">
-      <div class="card-title">🏢 Business Info</div>
-
-      <label class="field-label">Business Name</label>
-      <input class="field-input" type="text" id="businessName" placeholder="e.g. Sable Traders" />
-
-      <label class="field-label">Owner Name</label>
-      <input class="field-input" type="text" id="ownerName" placeholder="e.g. Gayatri Sable" />
-
-      <label class="field-label">Business Type</label>
-      <select class="field-input" id="businessType">
-        <option value="">Select type...</option>
-        <option value="retail">Retail / Shop</option>
-        <option value="service">Service</option>
-        <option value="freelance">Freelance</option>
-        <option value="manufacturing">Manufacturing</option>
-        <option value="other">Other</option>
-      </select>
-
-      <button class="save-btn" onclick="saveBusinessInfo()">Save Business Info</button>
-    </div>
-
-    <!-- ── CARD 2: Currency ── -->
-    <div class="settings-card">
-      <div class="card-title">💱 Currency</div>
-
-      <label class="field-label">Select Currency</label>
-      <select class="field-input" id="currencySelect">
-        <option value="INR|₹">Indian Rupee (₹)</option>
-        <option value="USD|$">US Dollar ($)</option>
-        <option value="EUR|€">Euro (€)</option>
-        <option value="GBP|£">British Pound (£)</option>
-        <option value="JPY|¥">Japanese Yen (¥)</option>
-        <option value="AED|AED">UAE Dirham (AED)</option>
-        <option value="SGD|S$">Singapore Dollar (S$)</option>
-        <option value="AUD|A$">Australian Dollar (A$)</option>
-      </select>
-
-      <button class="save-btn" onclick="saveCurrency()">Save Currency</button>
-    </div>
-
-    <!-- ── CARD 3: Language ── -->
-    <div class="settings-card">
-      <div class="card-title">🌐 Language</div>
-
-      <label class="field-label">App Language</label>
-      <select class="field-input" id="languageSelect">
-        <option value="en">English</option>
-        <option value="hi">Hindi</option>
-        <option value="mr">Marathi</option>
-        <option value="gu">Gujarati</option>
-        <option value="ta">Tamil</option>
-        <option value="te">Telugu</option>
-        <option value="bn">Bengali</option>
-      </select>
-
-      <button class="save-btn" onclick="saveLanguage()">Save Language</button>
-    </div>
-
-    <!-- ── CARD 4: Theme ── -->
-    <div class="settings-card">
-      <div class="card-title">🎨 Theme</div>
-
-      <div class="theme-opts">
-        <div class="theme-opt active" id="theme-dark" onclick="setTheme('dark')">
-          <div class="theme-opt-ico">🌙</div>
-          <div class="theme-opt-name">Dark</div>
-        </div>
-        <div class="theme-opt" id="theme-light" onclick="setTheme('light')">
-          <div class="theme-opt-ico">☀️</div>
-          <div class="theme-opt-name">Light</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── CARD 5: PIN Lock ── -->
-    <div class="settings-card">
-      <div class="card-title">🔒 PIN Lock</div>
-
-      <label class="field-label">Set 4-digit PIN</label>
-      <div class="pin-row">
-        <input class="field-input" type="password" id="pinInput" maxlength="4" placeholder="••••" inputmode="numeric" style="letter-spacing:6px; font-size:1.1rem;" />
-        <button class="toggle-pin-btn" onclick="togglePinVisibility()">👁</button>
-      </div>
-
-      <label class="field-label" style="margin-top:12px;">Confirm PIN</label>
-      <div class="pin-row">
-        <input class="field-input" type="password" id="pinConfirm" maxlength="4" placeholder="••••" inputmode="numeric" style="letter-spacing:6px; font-size:1.1rem;" />
-      </div>
-
-      <button class="save-btn" style="margin-top:12px;" onclick="savePIN()">Save PIN</button>
-    </div>
-
-    <!-- ── CARD 6: Partners ── -->
-    <div class="settings-card">
-      <div class="card-title">🤝 Partner Split</div>
-
-      <label class="field-label">Number of Partners</label>
-      <div class="partner-count-row">
-        <button class="p-count-btn active" id="pc-1" onclick="setPartnerCount(1)">Solo (1)</button>
-        <button class="p-count-btn" id="pc-2" onclick="setPartnerCount(2)">2 Partners</button>
-        <button class="p-count-btn" id="pc-3" onclick="setPartnerCount(3)">3 Partners</button>
-      </div>
-
-      <div id="partnerFields" class="partner-preview"></div>
-
-      <div class="equal-note" id="equalNote">Solo — no split needed</div>
-
-      <button class="save-btn" style="margin-top:14px;" onclick="savePartners()">Save Partner Config</button>
-    </div>
-
-    <!-- ── CARD 7: App Mode ── -->
-    <div class="settings-card">
-      <div class="card-title">🔄 App Mode</div>
-
-      <div class="mode-options">
-        <div class="mode-opt" id="opt-personal" onclick="switchAppMode('personal')">
-          <div class="mode-opt-ico">👤</div>
-          <div>
-            <div class="mode-opt-name">Personal</div>
-            <div class="mode-opt-desc">Track your own expenses & savings</div>
-          </div>
-          <div class="mode-opt-check" id="check-personal" style="visibility:hidden;">✔</div>
-        </div>
-
-        <div class="mode-opt active" id="opt-business" onclick="switchAppMode('business')">
-          <div class="mode-opt-ico">💼</div>
-          <div>
-            <div class="mode-opt-name">Business</div>
-            <div class="mode-opt-desc">Khata style — Money IN / OUT</div>
-          </div>
-          <div class="mode-opt-check" id="check-business">✔</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── CARD 8: DANGER ZONE ── -->
-    <div class="settings-card danger-card">
-      <div class="card-title">⚠️ Danger Zone</div>
-      <p class="danger-desc">
-        These actions <strong>cannot be undone.</strong> Clearing business data will permanently delete all your Money IN / OUT transactions. Switching mode will not delete data — only hide it.
-      </p>
-      <div class="danger-actions">
-        <button class="danger-btn" onclick="clearBusinessData()">🗑️ Clear All Business Data</button>
-        <button class="danger-btn" onclick="clearPartners()">🤝 Reset Partners</button>
-        <button class="danger-btn" onclick="clearPIN()">🔓 Remove PIN</button>
-<button class="danger-btn" onclick="deleteAccount()" style="border-color:#ff4444;color:#ff4444;">🗑️ Delete My Account</button>
-      </div>
-    </div>
-
-  </div><!-- /content -->
-</div><!-- /main -->
-
-<!-- PROFILE POPUP -->
-<div class="profile-popup" id="profilePopup">
-  <div class="pp-name" id="ppName">Loading...</div>
-  <div class="pp-email" id="ppEmail">loading@email.com</div>
-  <div class="pp-divider"></div>
-  <a href="business-profile.html" class="pp-link">👤 Profile</a>
-  <a href="business-settings.html" class="pp-link">⚙️ Settings</a>
-  <div class="pp-divider"></div>
-  <div class="pp-link logout" onclick="logout()">🚪 Logout</div>
-</div>
-
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-  // ─── INIT ───
-  window.addEventListener('DOMContentLoaded', () => {
-    loadAll();
-    loadProfilePopup();
-  });
+if (!localStorage.getItem('token')) window.location.href = 'login.html';
 
-  function loadAll() {
-    // Business Info
-    document.getElementById('businessName').value = localStorage.getItem('bt_business_name') || '';
-    document.getElementById('ownerName').value    = localStorage.getItem('bt_owner_name')    || '';
-    const bType = localStorage.getItem('bt_business_type') || '';
-    if (bType) document.getElementById('businessType').value = bType;
+/* ── INIT ── */
+function init() {
+  const name  = localStorage.getItem('userName')  || 'User';
+  const email = localStorage.getItem('userEmail') || '';
+  document.getElementById('avatarLetter').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('profileName').textContent  = name;
+  document.getElementById('profileEmail').textContent = email || '—';
 
-    // Currency
-    const cur = localStorage.getItem('bt_currency') || 'INR|₹';
-    document.getElementById('currencySelect').value = cur;
-
-    // Language
-    const lang = localStorage.getItem('bt_language') || 'en';
-    document.getElementById('languageSelect').value = lang;
-
-    // Theme
-    const theme = localStorage.getItem('bt_theme') || 'dark';
-    setTheme(theme, true);
-
-    // Mode
-    loadAppMode();
-
-    // Partners
-    const saved = JSON.parse(localStorage.getItem('bt_partners') || '{"count":1,"partners":[]}');
-    setPartnerCount(saved.count, saved.partners);
-  }
-
-  // ─── BUSINESS INFO ───
-  function saveBusinessInfo() {
-    localStorage.setItem('bt_business_name', document.getElementById('businessName').value.trim());
-    localStorage.setItem('bt_owner_name',    document.getElementById('ownerName').value.trim());
-    localStorage.setItem('bt_business_type', document.getElementById('businessType').value);
-    showToast('✅ Business info saved!');
-  }
-
-  // ─── CURRENCY ───
-  function saveCurrency() {
-    const val = document.getElementById('currencySelect').value;
-    const [code, sym] = val.split('|');
-    localStorage.setItem('bt_currency',     val);
-    localStorage.setItem('bt_currency_code', code);
-    localStorage.setItem('bt_currency_sym',  sym);
-    showToast('✅ Currency saved: ' + sym);
-  }
-
-  // ─── LANGUAGE ───
-  function saveLanguage() {
-    localStorage.setItem('bt_language', document.getElementById('languageSelect').value);
-    showToast('✅ Language saved!');
-  }
-
-  // ─── THEME ───
-  function setTheme(mode, silent = false) {
-    localStorage.setItem('bt_theme', mode);
-    document.getElementById('theme-dark').classList.toggle('active', mode === 'dark');
-    document.getElementById('theme-light').classList.toggle('active', mode === 'light');
-    // Apply theme to body (light mode override)
-    if (mode === 'light') {
-      document.body.style.background = '#f4f7f4';
-      document.body.style.color = '#1a2e1a';
-    } else {
-      document.body.style.background = '';
-      document.body.style.color = '';
-    }
-    if (!silent) showToast('✅ Theme changed to ' + mode + ' mode!');
-  }
-
-  // ─── PIN ───
-  function togglePinVisibility() {
-    const inp = document.getElementById('pinInput');
-    inp.type = inp.type === 'password' ? 'text' : 'password';
-  }
-
-  function savePIN() {
-    const p1 = document.getElementById('pinInput').value.trim();
-    const p2 = document.getElementById('pinConfirm').value.trim();
-    if (p1.length !== 4 || !/^\d{4}$/.test(p1)) { showToast('⚠️ PIN must be 4 digits!'); return; }
-    if (p1 !== p2) { showToast('⚠️ PINs do not match!'); return; }
-    localStorage.setItem('bt_pin', p1);
-    showToast('✅ PIN saved!');
-    document.getElementById('pinInput').value = '';
-    document.getElementById('pinConfirm').value = '';
-  }
-
-  function clearPIN() {
-    if (!confirm('Remove PIN lock?')) return;
-    localStorage.removeItem('bt_pin');
-    showToast('🔓 PIN removed!');
-  }
-
-  // ─── PARTNERS ───
-  let currentPartnerCount = 1;
-
-  function setPartnerCount(n, existingPartners = []) {
-    currentPartnerCount = n;
-
-    // Update buttons
-    [1,2,3].forEach(i => {
-      document.getElementById('pc-' + i).classList.toggle('active', i === n);
-    });
-
-    const container = document.getElementById('partnerFields');
-    const note      = document.getElementById('equalNote');
-
-    if (n === 1) {
-      container.innerHTML = '';
-      note.textContent = 'Solo — no split needed';
-      return;
-    }
-
-    const totalPct = 100;
-    const equalPct = (totalPct / n).toFixed(1);
-    note.textContent = `Equal split = ${equalPct}% each`;
-
-    container.innerHTML = '';
-    const labels = ['Partner A', 'Partner B', 'Partner C'];
-    for (let i = 0; i < n; i++) {
-      const name = existingPartners[i]?.name || '';
-      const pct  = existingPartners[i]?.pct  || equalPct;
-      const row  = document.createElement('div');
-      row.className = 'partner-row';
-      row.innerHTML = `
-        <input class="partner-name-input" type="text" placeholder="${labels[i]}" value="${name}" id="pname-${i}" />
-        <input class="partner-pct-input" type="number" min="0" max="100" placeholder="${equalPct}%" value="${pct}" id="ppct-${i}" />
-        <span style="color:var(--mid);font-size:0.8rem;">%</span>
-      `;
-      container.appendChild(row);
-    }
-  }
-
-  function savePartners() {
-    const n = currentPartnerCount;
-    const partners = [];
-    for (let i = 0; i < n; i++) {
-      if (n === 1) break;
-      const name = document.getElementById('pname-' + i)?.value.trim() || ('Partner ' + (i+1));
-      const pct  = parseFloat(document.getElementById('ppct-' + i)?.value) || 0;
-      partners.push({ name, pct });
-    }
-    // Validate total %
-    if (n > 1) {
-      const total = partners.reduce((s, p) => s + p.pct, 0);
-      if (Math.abs(total - 100) > 0.5) {
-        showToast('⚠️ Percentages must add up to 100%! (Currently: ' + total + '%)');
-        return;
-      }
-    }
-    localStorage.setItem('bt_partners', JSON.stringify({ count: n, partners }));
-    showToast('✅ Partner config saved!');
-  }
-  
-
-  function clearPartners() {
-    if (!confirm('Reset all partner settings?')) return;
-    localStorage.removeItem('bt_partners');
-    setPartnerCount(1);
-    showToast('🤝 Partners reset!');
-  }
-  // ─── DELETE ACCOUNT ───
-function deleteAccount() {
-  const first = confirm('⚠️ DELETE ACCOUNT?\n\nThis will permanently delete your account and ALL data from the server. This cannot be undone!');
-  if (!first) return;
-  const second = confirm('Are you 100% sure? Type OK to confirm.\n\nAll your expenses and business data will be gone forever.');
-  if (!second) return;
-
-  const token = localStorage.getItem('token');
-  fetch('/api/auth/account', {
-    method: 'DELETE',
-    headers: { 'Authorization': 'Bearer ' + token }
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      localStorage.clear();
-      sessionStorage.clear();
-      showToast('✅ Account deleted. Redirecting...');
-      setTimeout(() => window.location.href = 'register.html', 1500);
-    } else {
-      showToast('❌ Error: ' + data.message);
-    }
-  })
-  .catch(() => showToast('❌ Cannot connect to server'));
+  loadBusinessInfo();
+  loadCurrency();
+  loadTheme();
+  loadAppMode();
+  loadPinState();
+  renderLanguages();
+  loadPartners();
 }
 
-  // ─── APP MODE ───
-  function loadAppMode() {
-    const mode = localStorage.getItem('bt_mode') || 'business';
-    document.getElementById('opt-personal').classList.toggle('active', mode === 'personal');
-    document.getElementById('opt-business').classList.toggle('active', mode === 'business');
-    document.getElementById('check-personal').style.visibility = mode === 'personal' ? 'visible' : 'hidden';
-    document.getElementById('check-business').style.visibility = mode === 'business' ? 'visible' : 'hidden';
-  }
+/* ── BUSINESS INFO ── */
+function loadBusinessInfo() {
+  document.getElementById('businessName').value = localStorage.getItem('bt_business_name') || '';
+  document.getElementById('ownerName').value    = localStorage.getItem('bt_owner_name')    || '';
+  const bType = localStorage.getItem('bt_business_type') || '';
+  if (bType) document.getElementById('businessType').value = bType;
+}
 
-  function switchAppMode(mode) {
-    localStorage.setItem('bt_mode', mode);
-    loadAppMode();
-    setTimeout(() => {
-      window.location.href = mode === 'business' ? 'business.html' : 'index.html';
-    }, 600);
-  }
+function saveBusinessInfo() {
+  localStorage.setItem('bt_business_name', document.getElementById('businessName').value.trim());
+  localStorage.setItem('bt_owner_name',    document.getElementById('ownerName').value.trim());
+  localStorage.setItem('bt_business_type', document.getElementById('businessType').value);
+  showToast('✅ Business info saved!');
+  showSaved();
+}
 
-  // ─── DANGER ───
-  function clearBusinessData() {
-    if (!confirm('⚠️ This will permanently delete ALL your business transactions. Are you sure?')) return;
-    const token = localStorage.getItem('token');
-    fetch('/api/business', {
-      method: 'DELETE',
-      headers: { 'Authorization': 'Bearer ' + token }
+/* ── CURRENCY ── */
+function loadCurrency() {
+  const code = localStorage.getItem('bt_currency') || 'INR';
+  document.querySelectorAll('.currency-opt').forEach(o => o.classList.toggle('selected', o.dataset.code === code));
+}
+
+function selectCurrency(el) {
+  document.querySelectorAll('.currency-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  localStorage.setItem('bt_currency',     el.dataset.code);
+  localStorage.setItem('bt_currency_sym', el.dataset.sym);
+  showToast(`💱 Currency set to ${el.dataset.sym} (${el.dataset.code})`);
+  showSaved();
+}
+
+/* ── THEME ── */
+function loadTheme() {
+  const theme = localStorage.getItem('bt_theme') || 'dark';
+  document.getElementById('themeDark').classList.toggle('active',  theme === 'dark');
+  document.getElementById('themeLight').classList.toggle('active', theme === 'light');
+}
+
+function applyTheme(mode) {
+  localStorage.setItem('bt_theme', mode);
+  loadTheme();
+  if (typeof window.applyThemeFromStorage === 'function') window.applyThemeFromStorage();
+  showToast('🎨 Theme changed to ' + mode + ' mode!');
+  showSaved();
+}
+
+/* ── APP MODE ── */
+function loadAppMode() {
+  const mode = localStorage.getItem('bt_mode') || 'business';
+  document.getElementById('opt-personal').classList.toggle('active', mode === 'personal');
+  document.getElementById('opt-business').classList.toggle('active', mode === 'business');
+  document.getElementById('check-personal').style.visibility = mode === 'personal' ? 'visible' : 'hidden';
+  document.getElementById('check-business').style.visibility = mode === 'business' ? 'visible' : 'hidden';
+}
+
+function switchAppMode(mode) {
+  localStorage.setItem('bt_mode', mode);
+  loadAppMode();
+  showToast(mode === 'business' ? '💼 Switching to Business Mode...' : '👤 Switching to Personal Mode...');
+  setTimeout(() => { window.location.href = mode === 'business' ? 'business.html' : 'index.html'; }, 700);
+}
+
+/* ── LANGUAGE ── */
+const LANG_LIST = [
+  { code:'en', flag:'🇬🇧', name:'English',    native:'English'   },
+  { code:'hi', flag:'🇮🇳', name:'Hindi',      native:'हिंदी'     },
+  { code:'zh', flag:'🇨🇳', name:'Chinese',    native:'中文'       },
+  { code:'ja', flag:'🇯🇵', name:'Japanese',   native:'日本語'     },
+  { code:'ar', flag:'🇸🇦', name:'Arabic',     native:'العربية'   },
+  { code:'fr', flag:'🇫🇷', name:'French',     native:'Français'  },
+  { code:'de', flag:'🇩🇪', name:'German',     native:'Deutsch'   },
+  { code:'es', flag:'🇪🇸', name:'Spanish',    native:'Español'   },
+  { code:'pt', flag:'🇧🇷', name:'Portuguese', native:'Português' },
+  { code:'ko', flag:'🇰🇷', name:'Korean',     native:'한국어'     },
+  { code:'ru', flag:'🇷🇺', name:'Russian',    native:'Русский'   },
+];
+
+function renderLanguages() {
+  const saved = localStorage.getItem('bt_language') || 'en';
+  const box   = document.getElementById('langGrid');
+  if (!box) return;
+  box.innerHTML = LANG_LIST.map(l => `
+    <div class="lang-btn ${saved === l.code ? 'selected' : ''}" onclick="selectLang('${l.code}')">
+      <div class="lang-flag">${l.flag}</div>
+      <div class="lang-name">${l.name}</div>
+      <div class="lang-native">${l.native}</div>
+    </div>`).join('');
+}
+
+async function selectLang(code) {
+  localStorage.setItem('bt_language', code);
+  renderLanguages();
+  const langInfo = LANG_LIST.find(l => l.code === code);
+  if (langInfo) {
+    document.documentElement.setAttribute('dir', code === 'ar' ? 'rtl' : 'ltr');
+    document.documentElement.setAttribute('lang', code);
+  }
+  const token = localStorage.getItem('token');
+  if (token) {
+    await fetch('/api/auth/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ language: code })
+    }).catch(() => {});
+  }
+  if (typeof applyTranslations === 'function') applyTranslations();
+  showToast('🌐 Language saved: ' + (langInfo ? langInfo.name : code));
+  showSaved();
+}
+
+/* ── PIN ── */
+let pinInput = '', pinConfirm = '', pinStep = 'set';
+
+function loadPinState() {
+  const has = !!localStorage.getItem('bt_pin');
+  document.getElementById('pinToggle').checked = has;
+  if (has) { document.getElementById('pinSetup').classList.add('show'); document.getElementById('pinLbl').textContent = 'Change PIN'; }
+}
+
+function togglePinSetup() {
+  const on = document.getElementById('pinToggle').checked;
+  if (!on) {
+    if (confirm('Remove PIN lock?')) {
+      localStorage.removeItem('bt_pin'); sessionStorage.removeItem('bt_unlocked');
+      document.getElementById('pinSetup').classList.remove('show');
+      pinInput=''; pinConfirm=''; pinStep='set'; updateDots();
+      showToast('🔓 PIN lock removed');
+    } else { document.getElementById('pinToggle').checked = true; }
+  } else {
+    document.getElementById('pinSetup').classList.add('show');
+    document.getElementById('pinLbl').textContent = 'Set a 4-digit PIN';
+  }
+}
+
+function pinKey(k) { if(pinInput.length>=4)return; pinInput+=k; updateDots(); }
+function pinDel()  { pinInput=pinInput.slice(0,-1); updateDots(); }
+function updateDots() { for(let i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled', i<pinInput.length); }
+
+function savePin() {
+  if (pinInput.length < 4) return showToast('Enter a 4-digit PIN', true);
+  if (pinStep === 'set') {
+    pinConfirm = pinInput; pinInput = ''; pinStep = 'confirm';
+    updateDots(); document.getElementById('pinLbl').textContent = 'Confirm your PIN'; return;
+  }
+  const msg = document.getElementById('pinMsg');
+  if (pinInput !== pinConfirm) {
+    msg.textContent = '❌ PINs do not match. Try again.'; msg.className = 'pin-msg err';
+    pinInput=''; pinConfirm=''; pinStep='set'; updateDots();
+    document.getElementById('pinLbl').textContent = 'Set a 4-digit PIN';
+    setTimeout(()=>msg.className='pin-msg',2500); return;
+  }
+  localStorage.setItem('bt_pin', pinInput);
+  sessionStorage.setItem('bt_unlocked', '1');
+  msg.textContent = '✅ PIN set successfully!'; msg.className = 'pin-msg ok';
+  pinInput=''; pinConfirm=''; pinStep='set'; updateDots();
+  document.getElementById('pinLbl').textContent = 'Change PIN';
+  setTimeout(()=>msg.className='pin-msg',2500);
+  showToast('🔒 PIN lock enabled!'); showSaved();
+}
+
+function clearPin() { pinInput=''; pinConfirm=''; pinStep='set'; updateDots(); document.getElementById('pinLbl').textContent='Set a 4-digit PIN'; }
+
+/* ── PARTNERS ── */
+let currentPartnerCount = 1;
+
+function loadPartners() {
+  const saved = JSON.parse(localStorage.getItem('bt_partners') || '{"count":1,"partners":[]}');
+  setPartnerCount(saved.count, saved.partners);
+}
+
+function setPartnerCount(n, existingPartners = []) {
+  currentPartnerCount = n;
+  [1,2,3].forEach(i => document.getElementById('pc-'+i).classList.toggle('active', i===n));
+  const container = document.getElementById('partnerFields');
+  const note      = document.getElementById('equalNote');
+  if (n === 1) { container.innerHTML = ''; note.textContent = 'Solo — no split needed'; return; }
+  const equalPct = (100/n).toFixed(1);
+  note.textContent = `Equal split = ${equalPct}% each`;
+  container.innerHTML = '';
+  const labels = ['Partner A','Partner B','Partner C'];
+  for (let i = 0; i < n; i++) {
+    const name = existingPartners[i]?.name || '';
+    const pct  = existingPartners[i]?.pct  || equalPct;
+    const row  = document.createElement('div');
+    row.className = 'partner-row';
+    row.innerHTML = `
+      <input class="partner-name-input" type="text" placeholder="${labels[i]}" value="${name}" id="pname-${i}"/>
+      <input class="partner-pct-input"  type="number" min="0" max="100" value="${pct}" id="ppct-${i}"/>
+      <span style="color:var(--mid);font-size:.8rem;align-self:center;">%</span>`;
+    container.appendChild(row);
+  }
+}
+
+function savePartners() {
+  const n = currentPartnerCount;
+  const partners = [];
+  for (let i = 0; i < n; i++) {
+    if (n === 1) break;
+    partners.push({
+      name: document.getElementById('pname-'+i)?.value.trim() || ('Partner '+(i+1)),
+      pct:  parseFloat(document.getElementById('ppct-'+i)?.value) || 0
+    });
+  }
+  if (n > 1) {
+    const total = partners.reduce((s,p)=>s+p.pct,0);
+    if (Math.abs(total-100) > 0.5) { showToast('⚠️ Percentages must add up to 100%! (Currently: '+total+'%)', true); return; }
+  }
+  localStorage.setItem('bt_partners', JSON.stringify({ count: n, partners }));
+  showToast('✅ Partner config saved!');
+  showSaved();
+}
+
+function clearPartners() {
+  if (!confirm('Reset all partner settings?')) return;
+  localStorage.removeItem('bt_partners');
+  setPartnerCount(1);
+  showToast('🤝 Partners reset!');
+}
+
+/* ── DANGER ── */
+function clearBusinessData() {
+  if (!confirm('⚠️ This will permanently delete ALL your business transactions. Are you sure?')) return;
+  const token = localStorage.getItem('token');
+  fetch('/api/business', { method:'DELETE', headers:{'Authorization':'Bearer '+token} })
+    .then(()=>showToast('🗑️ All business data cleared!'))
+    .catch(()=>showToast('❌ Error clearing data', true));
+}
+
+function deleteAccount() {
+  const first = confirm('⚠️ DELETE ACCOUNT?\n\nThis will permanently delete your account and ALL data. This cannot be undone!');
+  if (!first) return;
+  const second = confirm('Are you 100% sure?\n\nAll your expenses, goals, bills and business data will be gone forever.');
+  if (!second) return;
+  const token = localStorage.getItem('token');
+  fetch('/api/auth/account', { method:'DELETE', headers:{'Authorization':'Bearer '+token} })
+    .then(res=>res.json())
+    .then(data => {
+      if (data.success) {
+        localStorage.clear(); sessionStorage.clear();
+        showToast('✅ Account deleted. Redirecting...');
+        setTimeout(()=>window.location.href='register.html', 1500);
+      } else { showToast('❌ Error: '+data.message, true); }
     })
-    .then(res => res.json())
-    .then(() => showToast('🗑️ All business data cleared!'))
-    .catch(() => showToast('❌ Error clearing data'));
-  }
+    .catch(()=>showToast('❌ Cannot connect to server', true));
+}
 
-  // ─── PROFILE POPUP ───
-  function loadProfilePopup() {
-    document.getElementById('ppName').textContent  = localStorage.getItem('userName')  || 'User';
-    document.getElementById('ppEmail').textContent = localStorage.getItem('userEmail') || '';
-  }
+/* ── HELPERS ── */
+function showSaved() { const s=document.getElementById('savedStrip'); s.classList.add('show'); setTimeout(()=>s.classList.remove('show'),3000); }
+function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
+function logout() { localStorage.removeItem('token'); window.location.href='login.html'; }
 
-  function toggleProfilePopup() {
-    document.getElementById('profilePopup').classList.toggle('open');
-  }
+function toggleProfile(e) {
+  e.stopPropagation();
+  const p = document.getElementById('profilePopup');
+  const name  = localStorage.getItem('userName')  || 'User';
+  const email = localStorage.getItem('userEmail') || '—';
+  document.getElementById('popupName').textContent  = name;
+  document.getElementById('popupEmail').textContent = email;
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
 
-  document.addEventListener('click', (e) => {
-    const popup = document.getElementById('profilePopup');
-    const btn   = document.getElementById('profileBtn');
-    if (!popup.contains(e.target) && !btn.contains(e.target)) {
-      popup.classList.remove('open');
-    }
-  });
+document.addEventListener('click', function() {
+  const p = document.getElementById('profilePopup');
+  if (p) p.style.display = 'none';
+});
 
-  function logout() {
-    localStorage.clear();
-    window.location.href = 'login.html';
-  }
+function showToast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (err ? ' err' : '');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
 
-  // ─── TOAST ───
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.style.display = 'block';
-    clearTimeout(window._toastTimer);
-    window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3000);
-  }
+/* AUTO HIGHLIGHT ACTIVE NAV */
+(function(){ const p=location.pathname.split('/').pop()||'business-settings.html'; document.querySelectorAll('.nav-link').forEach(a=>{ a.classList.remove('active'); if(a.getAttribute('href')===p) a.classList.add('active'); }); })();
+
+init();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
-<script src="business-help-tour.js"></script>
+<script src="help-tour.js"></script>
 </body>
 </html>
