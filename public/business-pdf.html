@@ -165,11 +165,14 @@
   <a class="sidebar-logo" href="business.html"><span class="logo-dot"></span>BudgetTracker</a>
   <nav class="nav-section">
     <div class="nav-label">Business</div>
-   <a href="business.html"          class="nav-link"><span class="icon">💼</span> Business Dashboard</a>
-    <a href="business-report.html"   class="nav-link "><span class="icon">📊</span> Monthly Report </a>
+    <a href="business.html"          class="nav-link"><span class="icon">💼</span> Business Dashboard</a>
+    <a href="business-report.html"   class="nav-link"><span class="icon">📊</span> Monthly Report</a>
     <a href="business-chart.html"    class="nav-link"><span class="icon">📈</span> Charts</a>
     <a href="business-partners.html" class="nav-link"><span class="icon">🤝</span> Partners</a>
-    <a href="business-pdf.html" class="nav-link active"><span class="icon">📄</span> PDF Report</a>
+    <a href="business-pdf.html"      class="nav-link active"><span class="icon">📄</span> PDF Report</a>
+    <a class="nav-link" onclick="HelpTour.start()" style="cursor:pointer;">
+      <span class="icon">🩵</span> Help Tour
+    </a>
   </nav>
   <div class="sidebar-bottom">
     <div class="profile-row" onclick="toggleProfile(event)">
@@ -388,7 +391,8 @@ const CATCOLS = {
 
 let allTxns = [], filtered = [];
 
-function init(){
+// ✅ FIXED: Load from MongoDB API — NOT localStorage
+async function init(){
   // Profile
   const name  = localStorage.getItem('businessName') || localStorage.getItem('userName') || localStorage.getItem('name') || 'Business';
   const email = localStorage.getItem('userEmail')    || localStorage.getItem('email')    || '';
@@ -396,15 +400,23 @@ function init(){
   document.getElementById('profileName').textContent  = name;
   document.getElementById('profileEmail').textContent = email || '—';
 
-  // Load transactions — support multiple storage keys
+  // ✅ Fetch business transactions from MongoDB via API
   try {
-    const raw = localStorage.getItem('bt_business_transactions')
-             || localStorage.getItem('bt_transactions')
-             || localStorage.getItem('transactions')
-             || localStorage.getItem('expenses')
-             || '[]';
-    allTxns = JSON.parse(raw);
-  } catch(e){ allTxns = []; }
+    const res = await fetch('/api/business', {
+      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+    });
+    const data = await res.json();
+    allTxns = data.map(t => ({
+      ...t,
+      title: t.fromTo || t.title || t.description || '—',
+      type:  t.type === 'in' ? 'income' : 'expense',
+      txnId: t.txnId || t._id,
+      date:  t.date ? t.date.split('T')[0] : ''
+    }));
+  } catch(e){
+    console.error('Failed to load business data:', e);
+    allTxns = [];
+  }
 
   // Year dropdown
   const years = [...new Set(allTxns.map(t => new Date(t.date+'T00:00:00').getFullYear()))].sort((a,b)=>b-a);
@@ -447,7 +459,6 @@ function renderStats(){
   const all = filtered.reduce((s,t)=>s+Number(t.amount||0),0);
   const avg = filtered.length ? all/filtered.length : 0;
 
-  // Top expense category
   const catMap = {};
   filtered.filter(t=>(t.type||'expense')==='expense').forEach(t=>{
     catMap[t.category] = (catMap[t.category]||0) + Number(t.amount||0);
@@ -457,16 +468,16 @@ function renderStats(){
   const incCount = filtered.filter(t=>(t.type||'expense')==='income').length;
   const expCount = filtered.filter(t=>(t.type||'expense')==='expense').length;
 
-  document.getElementById('s-income').textContent  = fmt(inc);
+  document.getElementById('s-income').textContent    = fmt(inc);
   document.getElementById('s-inc-count').textContent = incCount + ' income entries';
-  document.getElementById('s-expense').textContent = fmt(exp);
+  document.getElementById('s-expense').textContent   = fmt(exp);
   document.getElementById('s-exp-count').textContent = expCount + ' expense entries';
-  document.getElementById('s-net').textContent     = (net>=0?'+':'')+fmt(net);
-  document.getElementById('s-net').style.color     = net>=0 ? 'var(--green-bright)' : 'var(--red)';
+  document.getElementById('s-net').textContent       = (net>=0?'+':'')+fmt(net);
+  document.getElementById('s-net').style.color       = net>=0 ? 'var(--green-bright)' : 'var(--red)';
   document.getElementById('s-net-label').textContent = net>=0 ? 'net profit' : 'net loss';
-  document.getElementById('s-avg').textContent     = filtered.length ? fmt(avg) : '—';
-  document.getElementById('s-top').textContent     = top ? (CATICONS[top[0]]||'📌')+' '+top[0] : '—';
-  document.getElementById('s-top-amt').textContent = top ? fmt(top[1]) : 'no data';
+  document.getElementById('s-avg').textContent       = filtered.length ? fmt(avg) : '—';
+  document.getElementById('s-top').textContent       = top ? (CATICONS[top[0]]||'📌')+' '+top[0] : '—';
+  document.getElementById('s-top-amt').textContent   = top ? fmt(top[1]) : 'no data';
 }
 
 function renderPL(){
@@ -536,7 +547,6 @@ function renderBreakdowns(){
     if((t.type||'expense')==='income') incMap[t.category]=(incMap[t.category]||0)+amt;
     else                                expMap[t.category]=(expMap[t.category]||0)+amt;
   });
-
   document.getElementById('incomeBreakdown').innerHTML  = buildBreakdown(incMap, 'income');
   document.getElementById('expenseBreakdown').innerHTML = buildBreakdown(expMap, 'expense');
 }
@@ -573,7 +583,6 @@ function downloadPDF(){
   const net = inc - exp;
   const margin = inc>0 ? Math.round((net/inc)*100) : 0;
 
-  // Category maps
   const incMap={}, expMap={};
   filtered.forEach(t=>{
     const amt=Number(t.amount||0);
@@ -733,7 +742,7 @@ function showToast(msg,type){
   t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-init();
+init().catch(console.error);
 </script>
 </body>
 </html>
