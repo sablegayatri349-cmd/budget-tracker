@@ -544,6 +544,35 @@ window.obBack = function() {
       }, 350);
     }
   };
+  window.showSpotlight = function(targetId) {
+  const el = document.getElementById(targetId);
+  if (!el) return;
+  const rect = el.getBoundingClientRect();
+  const spot = document.createElement('div');
+  spot.id = 'ob-spotlight';
+  spot.style.cssText = `
+    position: fixed;
+    inset: 0;
+    z-index: 99998;
+    pointer-events: none;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.75);
+    border-radius: 14px;
+    top: ${rect.top - 8}px;
+    left: ${rect.left - 8}px;
+    width: ${rect.width + 16}px;
+    height: ${rect.height + 16}px;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.82),
+                0 0 0 3px #c9a84c,
+                0 0 24px rgba(201,168,76,0.5);
+    transition: all 0.4s ease;
+  `;
+  document.body.appendChild(spot);
+};
+
+window.removeSpotlight = function() {
+  const s = document.getElementById('ob-spotlight');
+  if (s) s.remove();
+};
 
   document.addEventListener('DOMContentLoaded', function() {
   console.log('ONBOARDING CHECK', sessionStorage.getItem('show_onboarding'));

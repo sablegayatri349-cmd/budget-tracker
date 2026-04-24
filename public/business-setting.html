@@ -7,29 +7,35 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <style>
     :root {
-  --bg:#080f08;
-   --bg2:#0c140c; 
-   --bg3:#111a11; 
-   --card:#141f14; 
-   --card2:#1a2a1a;
-  --border:#1f2f1f;
-   --border2:#2a402a; 
-   --green-dark:#1a3d1a; 
-   --green:#2d6a2d;
-  --green-mid:#3a8c3a;
-   --green-bright:#52b052; 
-   --gold:#c9a84c;
-    --gold-light:#e8c86a;
-  --gold-bright:#f5d87a;
-   --gold-dim:rgba(201,168,76,0.12);
-    --gold-border:rgba(201,168,76,0.25);
-  --red:#e05555; 
-  --red-dim:rgba(224,85,85,0.12);
-   --text:#e8f0e0; --tmid:#7a9870;
-    --tdim:#3a5030;
-  --sidebar-w:235px; 
-  --font-d:'DM Serif Display',serif; 
-  --font-b:'DM Sans',sans-serif;
+  --bg:          #080f08;
+  --bg2:         #0c140c;
+  --bg3:         #111a11;
+  --card:        #141f14;
+  --card2:       #1a2a1a;
+  --border:      #1f2f1f;
+  --border2:     #2a402a;
+  --green-dark:  #1a3d1a;
+  --green:       #2d6a2d;
+  --green-mid:   #3a8c3a;
+  --green-bright:#52b052;
+  --gold:        #c9a84c;
+  --gold-light:  #e8c86a;
+  --gold-bright: #f5d87a;
+  --gold-dim:    rgba(201,168,76,0.12);
+  --gold-border: rgba(201,168,76,0.25);
+  --red:         #e05555;
+  --red-dim:     rgba(224,85,85,0.12);
+  --text:        #e8f0e0;
+  --tmid:        #7a9870;
+  --tdim:        #3a5030;
+  --label:       #c9a84c;
+  --danger:      rgba(192,57,43,0.6);
+  --danger2:     #e07070;
+  --mid:         #7a9870;
+  --gold2:       #e8c86a;
+  --sidebar-w:   235px;
+  --font-d:      'DM Serif Display', serif;
+  --font-b:      'DM Sans', sans-serif;
 }
     * { margin:0; padding:0; box-sizing:border-box; }
 
@@ -503,11 +509,13 @@
   </div>
 
   <div class="sidebar-section-label">Business</div>
-  <a href="business.html" class="sidebar-link"><span class="ico">💼</span> Business Dashboard</a>
-  <a href="business-report.html" class="sidebar-link"><span class="ico">📊</span> Monthly Summary</a>
-  <a href="business-chart.html" class="sidebar-link"><span class="ico">📈</span> Charts</a>
-  <a href="business-partners.html" class="sidebar-link"><span class="ico">🤝</span> Partners</a>
-
+ <a href="business.html"         class="nav-link"><span class="icon">💼</span> Business Dashboard</a>
+  <a href="business.html"          class="nav-link"><span class="icon">💼</span> Business Dashboard</a>
+    <a href="business-report.html"   class="nav-link active"><span class="icon">📊</span> Monthly Report </a>
+    <a href="business-chart.html"    class="nav-link"><span class="icon">📈</span> Charts</a>
+    <a href="business-partners.html" class="nav-link"><span class="icon">🤝</span> Partners</a>
+    <a href="business-pdf.html" class="nav-link"><span class="icon">📄</span> PDF Report</a>
+  </nav>
   <a href="business-report.html" class="nav-link"><span class="icon">📄</span> PDF Report</a>
 </aside>
 

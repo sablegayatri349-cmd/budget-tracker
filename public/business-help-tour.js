@@ -795,7 +795,7 @@
       #miu-overlay {
         position: fixed; inset: 0; z-index: 99990;
         background: rgba(0,0,0,.45);
-        backdrop-filter: blur(2px);
+        backdrop-filter: none;
         opacity: 0; transition: opacity .35s;
         pointer-events: none;
       }
@@ -1151,13 +1151,16 @@
   ───────────────────────────────────────────── */
   window.HelpTour = {
     start() {
-      steps   = getSteps();
-      current = 0;
-      active  = true;
-      if (!steps.length) { console.warn('HelpTour: no matching step IDs found on this page.'); return; }
-      document.getElementById('miu-char').style.opacity = '1';
-      showStep(0);
-    },
+  steps   = getSteps();
+  current = 0;
+  active  = true;
+  if (!steps.length) { console.warn('HelpTour: no matching step IDs found on this page.'); return; }
+  document.getElementById('miu-char').style.opacity = '0';
+  setTimeout(() => {
+    document.getElementById('miu-char').style.opacity = '1';
+    showStep(0);
+  }, 100);
+},
     next() {
       if (!active) return;
       current++;

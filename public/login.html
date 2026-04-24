@@ -259,7 +259,7 @@
     const btn=document.getElementById('sub-btn'), sp=document.getElementById('spinner'), bt=document.getElementById('btn-text');
     btn.disabled=true; sp.style.display='block'; bt.textContent='Signing in…';
     try {
-      const res=await fetch('http://localhost:5000/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+      const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
       const data=await res.json();
  
 if (res.status===200&&data.token) {
