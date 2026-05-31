@@ -366,6 +366,9 @@
 </footer>
 
 <script>
+
+  if (localStorage.getItem('token')) window.location.href = 'index.html';
+</script>
   window.addEventListener('scroll', () => {
     document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
   });
