@@ -474,3 +474,72 @@ li b { color: var(--gold-light); }
   .sidebar { transform: translateX(0) !important; }
   .container { margin-left: var(--sidebar-w); }
 }
+/* ── MOBILE FIXES ── */
+
+/* List items on mobile — stack instead of side by side */
+@media (max-width: 600px) {
+  li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  li .btn-group {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .edit-btn, .delete-btn {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+/* Toast on mobile — full width at bottom */
+@media (max-width: 600px) {
+  .toast {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    text-align: center;
+  }
+}
+
+/* Profile popup on mobile — don't go off screen */
+@media (max-width: 600px) {
+  .profile-popup,
+  .profile-dropdown {
+    left: 0;
+    right: 0;
+    bottom: 120%;
+  }
+}
+
+/* Summary card text on mobile */
+@media (max-width: 480px) {
+  .summary-card h3 {
+    font-size: 16px;
+  }
+  .summary-card p {
+    font-size: 13px;
+  }
+}
+
+/* Charts on mobile — full width */
+@media (max-width: 600px) {
+  #expenseChart,
+  canvas {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+}
+
+/* Forms on mobile — full width buttons */
+@media (max-width: 600px) {
+  form button,
+  .form-btn {
+    width: 100%;
+    margin-top: 4px;
+  }
+}
