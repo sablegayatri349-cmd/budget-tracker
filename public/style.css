@@ -443,3 +443,34 @@ li b { color: var(--gold-light); }
   .dashboard-stats { grid-template-columns: 1fr; }
   .summary-card h3 { font-size: 18px; }
 }
+/* ── MOBILE (under 480px) ── */
+@media (max-width: 480px) {
+  .stat-card p { font-size: 20px; }
+  .stat-card h3 { font-size: 10px; }
+  .card { padding: 14px; }
+  .summary-card { padding: 18px; }
+  button { padding: 10px 14px; font-size: 13px; }
+  h1 { font-size: 20px; }
+  h2 { font-size: 17px; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 6px; }
+  .back-btn { font-size: 12px; padding: 7px 14px; }
+}
+
+/* ── TABLET (481px to 768px) ── */
+@media (min-width: 481px) and (max-width: 768px) {
+  .container { margin-left: 0; padding: 72px 20px 40px; }
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.active { transform: translateX(0); }
+  .menu-btn { display: flex; }
+  .dashboard-stats { grid-template-columns: repeat(2, 1fr); }
+  .stat-card p { font-size: 22px; }
+  h1 { font-size: 24px; }
+}
+
+/* ── LAPTOP (769px and above) ── */
+@media (min-width: 769px) {
+  .menu-btn { display: none; }
+  .sidebar { transform: translateX(0) !important; }
+  .container { margin-left: var(--sidebar-w); }
+}
