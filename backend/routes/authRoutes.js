@@ -58,4 +58,9 @@ router.post("/forgot-password",                                    forgotPasswor
 router.post("/reset-password",                                     resetPassword);
 router.delete("/account",            protect,                         deleteAccount);
 
+const authMiddleware = require('../middleware/authMiddleware');
+
+router.get('/verify', authMiddleware, (req, res) => {
+  res.status(200).json({ valid: true });
+});
 module.exports = router;
