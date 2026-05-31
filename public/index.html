@@ -470,7 +470,7 @@ body { font-family: var(--font-b); background: var(--bg); color: var(--text); mi
 <a href="pdf-report.html" class="nav-link"><span class="icon">📄</span> <span data-i18n="pdf_report">PDF Report</span></a>
 
 <a class="nav-link" onclick="HelpTour.start()" style="cursor:pointer;">
-  <span class="icon">🩵</span> Help Tour
+  <span class="icon">💙</span> Help Tour
 </a>
   </nav>
   <div class="sidebar-bottom">
@@ -480,8 +480,9 @@ body { font-family: var(--font-b); background: var(--bg); color: var(--text); mi
         <div class="profile-name"  id="profileName">User</div>
         <div class="profile-email" id="profileEmail">—</div>
       </div>
-      <span style="margin-left:auto;font-size:11px;color:var(--tdim);">▲</span>
     </div>
+    <span style="margin-left:auto;font-size:11px;color:var(--tdim);">▲</span>
+    <button class="logout-btn" onclick="logout()">🚪 Sign Out</button>
   </div>
 </aside>
 
@@ -703,7 +704,7 @@ body { font-family: var(--font-b); background: var(--bg); color: var(--text); mi
     </div>
   </div>
 </div>
-
+<button onclick="HelpTour.start()" style="position:fixed;bottom:24px;right:24px;width:48px;height:48px;border-radius:50%;background:#1a3d1a;border:2px solid #52b052;color:#52b052;font-size:22px;cursor:pointer;z-index:300;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.4);">🩵</button>
 <div class="toast" id="toast"></div>
 <script src="userdata.js"></script>
 <script>
