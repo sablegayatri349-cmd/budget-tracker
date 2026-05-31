@@ -231,7 +231,12 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  if (localStorage.getItem('token')) window.location.href = 'index.html';
+  const _tok = localStorage.getItem('token');
+if (_tok && window.location.pathname.includes('login')) {
+  fetch('/api/auth/verify', { headers: { 'Authorization': 'Bearer ' + _tok } })
+    .then(r => { if (r.ok) window.location.href = 'index.html'; else localStorage.removeItem('token'); })
+    .catch(() => localStorage.removeItem('token'));
+}
 
   function showToast(msg, err) {
     const t=document.getElementById('toast'); t.textContent=msg; t.className='toast'+(err?' err':''); t.classList.add('show');
