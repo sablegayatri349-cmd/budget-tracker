@@ -507,8 +507,10 @@ function loadTheme() {
 
 function applyTheme(mode) {
   localStorage.setItem('bt_theme', mode);
-  loadTheme();
-  if (typeof window.applyThemeFromStorage === 'function') window.applyThemeFromStorage();
+  const theme = (typeof THEMES !== 'undefined') ? THEMES[mode] : null;
+  if (theme) Object.entries(theme).forEach(([k,v]) => document.documentElement.style.setProperty(k,v));
+  document.getElementById('themeDark').classList.toggle('active', mode === 'dark');
+  document.getElementById('themeLight').classList.toggle('active', mode === 'light');
   showToast('🎨 Theme changed to ' + mode + ' mode!');
   showSaved();
 }
