@@ -155,6 +155,12 @@
     tbody td{color:#111;}
   }
   </style>
+  <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#080f08">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BudgetTracker">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 <body>
 
@@ -744,6 +750,15 @@ function showToast(msg,type){
 }
 
 init().catch(console.error);
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.log('SW error:', err));
+    });
+  }
 </script>
 </body>
 </html>

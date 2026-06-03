@@ -1,0 +1,25 @@
+<!-- ✅ PASTE THIS INSIDE <head> IN ALL YOUR HTML FILES -->
+<!-- PWA Manifest -->
+<link rel="manifest" href="/manifest.json">
+
+<!-- Theme color for browser bar (gold on mobile) -->
+<meta name="theme-color" content="#080f08">
+
+<!-- iOS support -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BudgetTracker">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+
+<!-- ✅ PASTE THIS JUST BEFORE </body> IN ALL YOUR HTML FILES -->
+<!-- Register Service Worker -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.log('SW error:', err));
+    });
+  }
+</script>

@@ -195,6 +195,12 @@ body { font-family: var(--font-b); background: var(--bg); color: var(--text); mi
 .sidebar-logo { padding-top: 60px; font-size: 17px; }
 }
 </style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#080f08">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BudgetTracker">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 <body>
 
@@ -599,5 +605,14 @@ if (!amount||amount<=0) return showToast(t('enter_valid_amount')||'Enter a valid
 <script src="userdata.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 <script src="help-tour.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.log('SW error:', err));
+    });
+  }
+</script>
 </body>
 </html>
