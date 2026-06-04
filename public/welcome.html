@@ -249,6 +249,10 @@
     .nav-links a:not(.btn-nav) { display: none; }
   }
 </style>
+
+<script>
+  if (localStorage.getItem('token')) window.location.replace('index.html');
+</script>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#080f08">
 <meta name="apple-mobile-web-app-capable" content="yes">
