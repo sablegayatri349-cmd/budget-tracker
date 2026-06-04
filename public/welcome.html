@@ -372,9 +372,8 @@
 </footer>
 
 <script>
-
   if (localStorage.getItem('token')) window.location.href = 'index.html';
-</script>
+
   window.addEventListener('scroll', () => {
     document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
   });
@@ -385,6 +384,7 @@
   }, { threshold: 0.15 });
   document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 </script>
+    
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
