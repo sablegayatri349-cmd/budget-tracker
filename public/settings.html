@@ -58,6 +58,7 @@ body { font-family:var(--font-b); background:var(--bg); color:var(--text); min-h
 
 /* CURRENCY */
 .currency-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+@media (max-width:700px) { .currency-grid { grid-template-columns:repeat(2,1fr); } }
 .currency-opt { padding:14px 10px; border-radius:12px; border:1px solid var(--border2); background:var(--bg3); cursor:pointer; text-align:center; transition:all .2s; }
 .currency-opt:hover { border-color:var(--gold-border); background:var(--gold-dim); }
 .currency-opt.selected { border-color:var(--gold); background:var(--gold-dim); box-shadow:0 0 0 1px var(--gold); }
