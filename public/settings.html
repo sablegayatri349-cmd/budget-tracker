@@ -833,8 +833,36 @@ function saveBudget() {
   localStorage.setItem('saving',    sav);
   localStorage.setItem('bt_budget', budg);
   localStorage.setItem('budget',    budg);
+
+  // Auto-add savings to goals if any exist
+  if (sav > 0) {
+    const goals = JSON.parse(localStorage.getItem('bt_goals') || '[]');
+    const activeGoals = goals.filter(g => g.saved < g.target);
+    if (activeGoals.length > 0) {
+      const today = new Date().toISOString().split('T')[0];
+      const lastSaved = localStorage.getItem('bt_last_saving_date');
+      const thisMonth = today.slice(0, 7); // YYYY-MM
+      if (lastSaved !== thisMonth) {
+        // Add to first active goal
+        goals[goals.findIndex(g => g.id === activeGoals[0].id)].saved += sav;
+        goals[goals.findIndex(g => g.id === activeGoals[0].id)].contributions = 
+          goals[goals.findIndex(g => g.id === activeGoals[0].id)].contributions || [];
+        goals[goals.findIndex(g => g.id === activeGoals[0].id)].contributions.push({
+          amount: sav, date: today, auto: true
+        });
+        localStorage.setItem('bt_goals', JSON.stringify(goals));
+        localStorage.setItem('bt_last_saving_date', thisMonth);
+        showToast('💰 Budget saved! ₹' + sav + ' auto-added to "' + activeGoals[0].name + '"');
+      } else {
+        showToast('💰 Budget saved! (Savings already added this month)');
+      }
+    } else {
+      showToast('💰 Budget saved! Add a Savings Goal to auto-track savings.');
+    }
+  } else {
+    showToast('💰 Budget saved! Dashboard updated.');
+  }
   showSaved();
-  showToast('💰 Budget saved! Dashboard updated.');
 }
 
 /* AUTO HIGHLIGHT ACTIVE NAV */
